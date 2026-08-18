@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect x="0" y="0" width="400" height="400" fill="#f4e3b8" />
+
+  <!-- sky accents (top-right quadrant) -->
+  <path d="M362 48 a20 20 0 1 0 0.1 0 Z M356 48 a16 16 0 1 1 -0.1 0" fill="#e3b969" />
+  <g fill="#c9934c">
+    <path d="M256 36 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4 Z" />
+    <path d="M304 128 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" />
+    <path d="M362 152 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" />
+  </g>
+
+  <!-- ground shadow -->
+  <ellipse cx="150" cy="396" rx="95" ry="10" fill="rgba(75,41,23,0.25)" />
+
+  <!-- tripod legs -->
+  <g stroke="#5a3217" stroke-width="11" stroke-linecap="round">
+    <line x1="140" y1="290" x2="68" y2="392" />
+    <line x1="140" y1="290" x2="150" y2="398" />
+    <line x1="140" y1="290" x2="232" y2="386" />
+  </g>
+  <line x1="92" y1="348" x2="198" y2="342" stroke="#7a4b23" stroke-width="8" stroke-linecap="round" />
+
+  <!-- mount joint -->
+  <circle cx="140" cy="290" r="13" fill="#7a4b23" stroke="#4b2917" stroke-width="3" />
+
+  <!-- telescope tube -->
+  <rect x="110" y="285" width="304" height="30" rx="8"
+        fill="#6b3f1d" stroke="#4b2917" stroke-width="3"
+        transform="rotate(-43.6 110 300)" />
+  <rect x="150" y="290" width="90" height="20" rx="4"
+        fill="#8b592c"
+        transform="rotate(-43.6 110 300)" />
+
+  <!-- eyepiece -->
+  <circle cx="110" cy="300" r="19" fill="#4b2917" stroke="#2f1a0c" stroke-width="3" />
+  <circle cx="110" cy="300" r="9" fill="#231206" />
+
+  <!-- objective lens -->
+  <circle cx="330" cy="90" r="27" fill="#e3b969" stroke="#4b2917" stroke-width="4" />
+  <circle cx="330" cy="90" r="16" fill="#f5d99b" />
+  <circle cx="324" cy="84" r="5" fill="#fff6df" opacity="0.8" />
+</svg>
