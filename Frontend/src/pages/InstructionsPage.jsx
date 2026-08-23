@@ -2,24 +2,48 @@ import { useState } from "react";
 import "../style/InstructionsPage.css";
 
 export default function InstructionsPage() {
-
   const [opened, setOpened] = useState(false);
+
+  const handleEnterMap = () => {
+    try {
+      const student = JSON.parse(localStorage.getItem('student_user') || '{}');
+      const rawUrl = student?.map?.mapUrl || 'https://play.workadventu.re/@/iitgmap/iitgmap/small-forest-office';
+      const playerName = (student.name || student.username || 'Adventurer').trim();
+
+      // Parse and inject bypass parameters into map URL
+      let targetUrl = rawUrl;
+      try {
+        const urlObj = new URL(rawUrl);
+        urlObj.searchParams.set('name', playerName);
+        urlObj.searchParams.set('disableCamera', 'true');
+        urlObj.searchParams.set('disableMicrophone', 'true');
+        urlObj.searchParams.set('audio', 'disabled');
+        urlObj.searchParams.set('video', 'disabled');
+        targetUrl = urlObj.toString();
+      } catch {
+        // Fallback string concatenation if not standard URL
+        const separator = rawUrl.includes('?') ? '&' : '?';
+        targetUrl = `${rawUrl}${separator}name=${encodeURIComponent(playerName)}&disableCamera=true&disableMicrophone=true&audio=disabled&video=disabled`;
+      }
+
+      window.location.href = targetUrl;
+    } catch {
+      window.location.href = 'https://play.workadventu.re/@/iitgmap/iitgmap/small-forest-office';
+    }
+  };
 
   return (
     <div className="instructions-page">
-
       {/* Background */}
       <div className="instructions-overlay"></div>
 
       <div className="instructions-container">
-
         {!opened ? (
           /* CLOSED SCROLL */
           <div
             className="closed-scroll"
             onClick={() => setOpened(true)}
           >
-
             <div className="scroll-roll top-roll"></div>
 
             <div className="scroll-body">
@@ -29,17 +53,13 @@ export default function InstructionsPage() {
             </div>
 
             <div className="scroll-roll bottom-roll"></div>
-
           </div>
         ) : (
-
           /* OPEN SCROLL */
           <div className="open-scroll">
-
             <div className="scroll-top"></div>
 
             <div className="scroll-content">
-
               <h1>THE QUEST</h1>
 
               <div className="ornament">
@@ -59,11 +79,9 @@ export default function InstructionsPage() {
                 lead you closer to the final destination.
               </p>
 
-
               <h2>HOW TO PLAY</h2>
 
               <div className="rules">
-
                 <div className="rule">
                   <span>01</span>
                   <p>
@@ -102,37 +120,27 @@ export default function InstructionsPage() {
                     secret code to complete the quest.
                   </p>
                 </div>
-
               </div>
-
 
               <div className="warning">
-
                 ⚔️ <strong>REMEMBER</strong>
-
                 <br />
-
                 Think carefully. Work quickly.
                 Every clue brings you closer to the treasure.
-
               </div>
 
-                <button
-                    className="map-btn"
-                    onClick={()=>window.location.href='https://play.workadventu.re/@/iitgmap/iitgmap/small-forest-office'}>
-                    ENTER THE MAP <span>→</span>
-                </button>
-
+              <button
+                className="map-btn"
+                onClick={handleEnterMap}
+              >
+                ENTER THE MAP <span>→</span>
+              </button>
             </div>
 
             <div className="scroll-bottom"></div>
-
           </div>
-
         )}
-
       </div>
-
     </div>
   );
 }

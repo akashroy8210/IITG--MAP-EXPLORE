@@ -1,96 +1,60 @@
-import '../style/LandingPage.css'
+import '../style/LandingPage.css';
 import MainGateBg from "../assets/MainGateBg.png";
 import Banner from '../assets/Banner.png';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-export default function LandingPage(){
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+
+export default function LandingPage() {
     const [username, setUsername] = useState("");
     const [gameCode, setGameCode] = useState("");
-
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
     const handleLogin = async (e) => {
-
         e.preventDefault();
-
         setError("");
 
-        if (!username || !gameCode) {
-            setError(
-                "Please enter username and game code"
-            );
-
+        if (!username.trim() || !gameCode.trim()) {
+            setError("Please enter your username and password / game code");
             return;
         }
 
-            try {
+        try {
+            setLoading(true);
+            const response = await axios.post(
+                `${API_BASE_URL}/auth/student/login`,
+                {
+                    username: username.trim().toLowerCase(),
+                    password: gameCode.trim()
+                }
+            );
 
-                setLoading(true);
-
-
-            //   const response = await axios.post(
-
-            //     "http://localhost:/api/login",
-
-            //     {
-            //       username,
-            //       gameCode
-            //     },
-
-            //     {
-            //       withCredentials: true
-            //     }
-
-            //   );
-
-
-            //   if (response.data.success) {
-
-            //     console.log(
-            //       "Logged in:",
-            //       response.data.player
-            //     );
-                
-
+            if (response.data && response.data.token) {
+                localStorage.setItem("student_token", response.data.token);
+                localStorage.setItem("student_user", JSON.stringify(response.data.student));
                 navigate("/Instructions");
-
-            
-
-            } catch (error) {
-
-            console.error(error);
-
-            if (error.response) {
-
-                setError(
-                error.response.data.message
-                );
-
             } else {
-                navigate("/Instructions");
-                setError(
-                "Unable to connect to server"
-                );
-
+                setError("Login failed. No token received.");
             }
-
-            } finally {
-                setError("Unable to connect to server");
-                setLoading(false);
-                navigate("/instructions");
+        } catch (err) {
+            console.error("Student login error:", err);
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("Unable to connect to game server. Please try again.");
             }
+        } finally {
+            setLoading(false);
+        }
     };
 
-
-
-
-
-    return(
+    return (
         <>
             <div className="landing-page">
-
                 {/* Campus gate background */}
                 <img
                     src={MainGateBg}
@@ -106,79 +70,70 @@ export default function LandingPage(){
                 />
 
                 {/* Login Card */}
-      <div className="login-card">
+                <div className="login-card">
+                    <div className="login-heading">
+                        BEGIN YOUR QUEST
+                    </div>
 
-        <div className="login-heading">
-          BEGIN YOUR QUEST
-        </div>
+                    <div className="login-divider">
+                        <span>✦</span>
+                    </div>
 
-        <div className="login-divider">
-          <span>✦</span>
-        </div>
+                    <p className="login-description">
+                        Enter your credentials to enter the adventure
+                    </p>
 
-        <p className="login-description">
-          Enter your details to enter the adventure
-        </p>
+                    <form onSubmit={handleLogin}>
+                        {/* Username */}
+                        <div className="input-wrapper">
+                            <span className="input-icon">♙</span>
+                            <input
+                                type="text"
+                                placeholder="ENTER USERNAME (e.g. user100001)"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
+                            />
+                        </div>
 
+                        {/* Game Code / Password */}
+                        <div className="input-wrapper">
+                            <span className="input-icon">🔑</span>
+                            <input
+                                type="password"
+                                placeholder="ENTER PASSWORD / GAME CODE"
+                                value={gameCode}
+                                onChange={(e) => setGameCode(e.target.value)}
+                                autoComplete="current-password"
+                            />
+                        </div>
 
-        <form onSubmit={handleLogin}>
+                        {/* Button */}
+                        <button className="start-button" type="submit" disabled={loading}>
+                            {loading ? "CHECKING..." : "ENTER THE QUEST "}
+                            <span> →</span>
+                        </button>
+                    </form>
 
-        
-            {/* Username */}
-            <div className="input-wrapper">
-            <span className="input-icon">♙</span>
-
-            <input
-                type="text"
-                placeholder="ENTER USERNAME"
-                value={username}
-                onChange={(e)=>setUsername(e.target.value)}
-            />
+                    <p className="organizer-text">
+                        Credentials provided by the administrators
+                    </p>
+                </div>
             </div>
 
-            {/* Game Code */}
-            <div className="input-wrapper">
-            <span className="input-icon">🔑</span>
-
-            <input
-                type="text"
-                placeholder="ENTER GAME CODE"
-                value={gameCode}
-                onChange={(e)=>setGameCode(e.target.value)}
-            />
-            </div>
-
-            {/* Button */}
-            <button className="start-button">
-            {loading
-            ? "CHECKING..."
-            : "ENTER THE QUEST "}
-            <span> →</span>
-            </button>
-        </form>
-        <p className="organizer-text">
-          Game code provided by the organizers
-        </p>
-
-      </div>
-            </div>
             {error && (
-        
-  <div className="quest-error">
-    <div className="error-icon">⚠</div>
-
-    <div className="error-content">
-      <div className="error-title">
-        QUEST DENIED
-      </div>
-
-      <div className="error-message">
-        {error}
-      </div>
-    </div>
-  </div>
-)}  
-
+                <div className="quest-error">
+                    <div className="error-icon">⚠</div>
+                    <div className="error-content">
+                        <div className="error-title">
+                            QUEST DENIED
+                        </div>
+                        <div className="error-message">
+                            {error}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
-    )
+    );
 }
