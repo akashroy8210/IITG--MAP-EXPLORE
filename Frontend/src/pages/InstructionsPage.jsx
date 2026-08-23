@@ -119,7 +119,7 @@ export default function InstructionsPage() {
 
                 <button
                     className="map-btn"
-                    onClick={()=>window.location.href='https://play.workadventu.re/@/iitgmap/iitgmap/small-forest-office'}>
+                    onClick={()=>window.location.href='https://play.workadventu.re/@/iitgmap/iitgmap/maps/office'}>
                     ENTER THE MAP <span>→</span>
                 </button>
 

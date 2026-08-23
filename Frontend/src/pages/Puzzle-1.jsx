@@ -112,7 +112,7 @@ export default function Puzzle1() {
               the name of the object!
             </p>
           </div>
-  
+          
         </div>
 
         <div className="puzzle-grid-wrap">

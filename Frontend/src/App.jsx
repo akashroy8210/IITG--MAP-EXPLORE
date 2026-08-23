@@ -7,6 +7,7 @@ import Puzzle2 from './pages/Puzzle-2';
 import Puzzle3 from './pages/Puzzle-3';
 import Puzzle4 from './pages/Puzzle-4';
 import Puzzle5 from './pages/Puzzle-5';
+import Maingate from './pages/Maingate';
 function App() {
 
 
@@ -20,6 +21,7 @@ function App() {
         <Route path='/puzzle-3' element={<Puzzle3 />}></Route>
         <Route path='/puzzle-4' element={<Puzzle4 />}></Route>
         <Route path='/puzzle-5' element={<Puzzle5 />}></Route>
+        <Route path='/main-gate' element={<Maingate />}></Route>
       </Routes>
     </BrowserRouter>
   )
