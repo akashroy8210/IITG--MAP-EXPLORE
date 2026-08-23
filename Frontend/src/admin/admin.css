@@ -1,0 +1,615 @@
+/* ─── NEO-BRUTALISM + BENTO GRID DESIGN SYSTEM ─── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  --neo-black: #111111;
+  --neo-white: #ffffff;
+  --neo-bg: #f4f0ea;
+  --neo-surface: #faf8f5;
+  
+  --neo-yellow: #ffd93d;
+  --neo-purple: #7c3aed;
+  --neo-purple-light: #eddcfc;
+  --neo-pink: #ff5c8a;
+  --neo-green: #45d483;
+  --neo-blue: #4da3ff;
+  --neo-orange: #ff9f43;
+  --neo-gray-light: #e5e0d8;
+  --neo-gray: #8a8275;
+
+  --neo-border-sm: 2px solid var(--neo-black);
+  --neo-border: 3px solid var(--neo-black);
+  --neo-border-lg: 4px solid var(--neo-black);
+
+  --neo-shadow-sm: 3px 3px 0 var(--neo-black);
+  --neo-shadow: 5px 5px 0 var(--neo-black);
+  --neo-shadow-lg: 8px 8px 0 var(--neo-black);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Reset root container constraints when inside admin app */
+#root:has(.admin-app-wrapper) {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border-inline: none !important;
+  background: var(--neo-bg) !important;
+  min-height: 100vh !important;
+  text-align: left !important;
+  color: var(--neo-black) !important;
+  font-family: var(--font-sans);
+}
+
+.admin-app-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--neo-bg);
+  color: var(--neo-black);
+  font-family: var(--font-sans);
+  box-sizing: border-box;
+}
+
+/* ─── SIDEBAR ─── */
+.admin-sidebar {
+  width: 270px;
+  background: var(--neo-white);
+  border-right: var(--neo-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 50;
+  box-shadow: 4px 0 0 var(--neo-black);
+}
+
+.sidebar-header {
+  padding: 24px 20px;
+  border-bottom: var(--neo-border);
+  background: var(--neo-yellow);
+}
+
+.brand-badge {
+  display: inline-block;
+  background: var(--neo-black);
+  color: var(--neo-yellow);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 3px 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  box-shadow: 2px 2px 0 var(--neo-white);
+}
+
+.brand-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0;
+  color: var(--neo-black);
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.sidebar-nav {
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--neo-gray);
+  padding: 12px 10px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--neo-black);
+  text-decoration: none;
+  border: var(--neo-border-sm);
+  background: var(--neo-white);
+  border-radius: 0;
+  transition: all 0.15s ease;
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.nav-item:hover {
+  background: var(--neo-yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--neo-black);
+}
+
+.nav-item.active {
+  background: var(--neo-purple);
+  color: var(--neo-white);
+  box-shadow: 4px 4px 0 var(--neo-black);
+  transform: translate(-1px, -1px);
+}
+
+.nav-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: var(--neo-border);
+  background: var(--neo-surface);
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--neo-white);
+  border: var(--neo-border-sm);
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--neo-pink);
+  border: 2px solid var(--neo-black);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.user-name {
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--neo-purple);
+  text-transform: uppercase;
+}
+
+/* ─── MAIN CONTENT ─── */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--neo-bg);
+}
+
+.admin-header {
+  padding: 20px 32px;
+  background: var(--neo-white);
+  border-bottom: var(--neo-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: 0 4px 0 var(--neo-black);
+}
+
+.header-welcome h1 {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.header-welcome p {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neo-gray);
+  margin-top: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-body {
+  padding: 32px;
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* ─── BENTO GRID LAYOUT ─── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.bento-span-3 { grid-column: span 3; }
+.bento-span-4 { grid-column: span 4; }
+.bento-span-6 { grid-column: span 6; }
+.bento-span-8 { grid-column: span 8; }
+.bento-span-12 { grid-column: span 12; }
+
+@media (max-width: 1100px) {
+  .bento-span-3, .bento-span-4 { grid-column: span 6; }
+  .bento-span-8 { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+  .bento-span-3, .bento-span-4, .bento-span-6, .bento-span-8, .bento-span-12 {
+    grid-column: span 12;
+  }
+  .admin-app-wrapper { flex-direction: column; }
+  .admin-sidebar { width: 100%; height: auto; position: relative; }
+  .admin-body { padding: 16px; }
+  .admin-header { padding: 16px; flex-direction: column; align-items: flex-start; }
+}
+
+/* ─── NEO BENTO CARDS ─── */
+.neo-card {
+  background: var(--neo-white);
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow);
+  padding: 24px;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.neo-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--neo-shadow-lg);
+}
+
+.neo-card-yellow { background: var(--neo-yellow); }
+.neo-card-purple { background: var(--neo-purple-light); }
+.neo-card-pink { background: #ffe4ec; }
+.neo-card-blue { background: #e3f2ff; }
+.neo-card-green { background: #e2f9ec; }
+.neo-card-dark { background: var(--neo-black); color: var(--neo-white); }
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.card-icon-badge {
+  width: 38px;
+  height: 38px;
+  border: var(--neo-border-sm);
+  background: var(--neo-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.stat-value {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border: 2px solid var(--neo-black);
+  background: var(--neo-white);
+}
+
+.stat-trend.up { background: var(--neo-green); }
+.stat-trend.neutral { background: var(--neo-yellow); }
+
+/* ─── NEO BUTTONS ─── */
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 20px;
+  border: var(--neo-border);
+  background: var(--neo-white);
+  color: var(--neo-black);
+  cursor: pointer;
+  box-shadow: var(--neo-shadow-sm);
+  transition: all 0.1s ease;
+  text-decoration: none;
+  user-select: none;
+}
+
+.neo-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--neo-black);
+}
+
+.neo-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--neo-black);
+}
+
+.neo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.neo-btn-primary { background: var(--neo-purple); color: var(--neo-white); }
+.neo-btn-yellow { background: var(--neo-yellow); color: var(--neo-black); }
+.neo-btn-pink { background: var(--neo-pink); color: var(--neo-white); }
+.neo-btn-green { background: var(--neo-green); color: var(--neo-black); }
+.neo-btn-black { background: var(--neo-black); color: var(--neo-white); }
+.neo-btn-sm { padding: 6px 12px; font-size: 12px; border: var(--neo-border-sm); box-shadow: 2px 2px 0 var(--neo-black); }
+.neo-btn-lg { padding: 16px 28px; font-size: 16px; }
+
+/* ─── NEO INPUTS & SELECTS ─── */
+.neo-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.neo-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--neo-black);
+}
+
+.neo-input, .neo-select, .neo-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--neo-black);
+  background: var(--neo-white);
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.neo-input:focus, .neo-select:focus, .neo-textarea:focus {
+  border-color: var(--neo-purple);
+  box-shadow: 5px 5px 0 var(--neo-black);
+  background: #ffffff;
+}
+
+/* ─── NEO TABLES ─── */
+.neo-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow);
+  background: var(--neo-white);
+}
+
+.neo-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.neo-table th {
+  background: var(--neo-yellow);
+  color: var(--neo-black);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 14px 16px;
+  border-bottom: var(--neo-border);
+  border-right: 2px solid var(--neo-black);
+}
+
+.neo-table th:last-child {
+  border-right: none;
+}
+
+.neo-table td {
+  padding: 14px 16px;
+  border-bottom: 2px solid var(--neo-black);
+  border-right: 2px solid #ddd;
+  font-weight: 600;
+}
+
+.neo-table td:last-child {
+  border-right: none;
+}
+
+.neo-table tbody tr:hover {
+  background: #fdf8e6;
+}
+
+.neo-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── STATUS BADGES ─── */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: 2px solid var(--neo-black);
+  box-shadow: 2px 2px 0 var(--neo-black);
+}
+
+.status-active, .status-available, .status-created, .status-completed {
+  background: var(--neo-green);
+  color: var(--neo-black);
+}
+
+.status-inactive, .status-full, .status-failed {
+  background: var(--neo-pink);
+  color: var(--neo-white);
+}
+
+.status-in_progress {
+  background: var(--neo-yellow);
+  color: var(--neo-black);
+}
+
+.status-devops {
+  background: var(--neo-blue);
+  color: var(--neo-black);
+}
+
+.status-admin {
+  background: var(--neo-purple);
+  color: var(--neo-white);
+}
+
+/* ─── MODAL OVERLAY ─── */
+.neo-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.neo-modal-box {
+  background: var(--neo-white);
+  border: var(--neo-border-lg);
+  box-shadow: 12px 12px 0 var(--neo-black);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+  animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.95) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* ─── TOAST NOTIFICATIONS ─── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.neo-toast {
+  padding: 14px 20px;
+  background: var(--neo-white);
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+  animation: toastIn 0.2s ease;
+}
+
+@keyframes toastIn {
+  0% { transform: translateX(50px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.neo-toast-success { background: var(--neo-green); }
+.neo-toast-error { background: var(--neo-pink); color: var(--neo-white); }
+.neo-toast-warning { background: var(--neo-yellow); }
+
+/* ─── SKELETON LOADING ─── */
+.skeleton-box {
+  background: linear-gradient(90deg, #e5e0d8 25%, #f4f0ea 50%, #e5e0d8 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+  border: 2px solid var(--neo-black);
+}
+
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

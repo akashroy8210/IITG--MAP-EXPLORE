@@ -10,12 +10,21 @@ import puzzleImage from "../assets/puzzle-telescope.svg";
 const PUZZLE_ID = "puzzle-5";
 const ANSWER = "35";
 const REWARD_POINTS = 25;
-const GATE_CODE = "8156";
 
 const RANDOM_IMAGES = [MainGateBg, Banner, banner2, puzzleImage];
 
 export default function Puzzle5() {
   const navigate = useNavigate();
+
+  const student = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('student_user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+
+  const userGateCode = student?.mainGateCode || "GATE-8156";
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | image
@@ -143,10 +152,10 @@ export default function Puzzle5() {
                   <img src={cardImage} alt="A photograph left on the desk" />
                 </div>
                 <div className="flip-card-back">
-                  <span className="code-label">MAIN GATE CODE</span>
-                  <span className="code-value">{GATE_CODE}</span>
+                  <span className="code-label">PERSONAL MAIN GATE CODE</span>
+                  <span className="code-value">{userGateCode}</span>
                   <span className="code-note">
-                    Enter this at the Main Gate.
+                    Enter this unique code at the Main Gate to finish!
                   </span>
                 </div>
               </div>
