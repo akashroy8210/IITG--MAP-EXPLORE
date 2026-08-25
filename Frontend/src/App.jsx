@@ -13,6 +13,11 @@ import ProtectedRoute from './admin/auth/ProtectedRoute';
 import ToastContainer from './admin/components/Toast';
 import LoginPage from './admin/pages/LoginPage';
 import DashboardPage from './admin/pages/DashboardPage';
+import QuestionsPage from './admin/pages/questions/QuestionsPage';
+import CreateQuestionPage from './admin/pages/questions/CreateQuestionPage';
+import BulkUploadQuestionsPage from './admin/pages/questions/BulkUploadQuestionsPage';
+import SetsPage from './admin/pages/sets/SetsPage';
+import GenerateSetsPage from './admin/pages/sets/GenerateSetsPage';
 import StudentsPage from './admin/pages/students/StudentsPage';
 import CreateStudentPage from './admin/pages/students/CreateStudentPage';
 import BulkCreatePage from './admin/pages/students/BulkCreatePage';
@@ -33,7 +38,7 @@ export default function App() {
       <AuthProvider>
         <ToastContainer />
         <Routes>
-          {/* ── Student Game Routes ── */}
+          {/* ── Student Game Routes (Unchanged) ── */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/Instructions" element={<InstructionsPage />} />
           <Route path="/puzzle-1" element={<Puzzle1 />} />
@@ -49,6 +54,46 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/questions"
+            element={
+              <ProtectedRoute>
+                <QuestionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/questions/create"
+            element={
+              <ProtectedRoute>
+                <CreateQuestionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/questions/upload"
+            element={
+              <ProtectedRoute>
+                <BulkUploadQuestionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sets"
+            element={
+              <ProtectedRoute>
+                <SetsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sets/generate"
+            element={
+              <ProtectedRoute>
+                <GenerateSetsPage />
               </ProtectedRoute>
             }
           />

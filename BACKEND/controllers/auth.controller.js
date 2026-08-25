@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const AdminUser = require('../models/AdminUser');
+const bcrypt = require('bcrypt');
 const { loginLimiter, adminLoginLimiter } = require('../utils/rateLimiter');
 
 // ─── Student Login ─────────────────────────────────────────────────────────────
@@ -16,16 +17,19 @@ async function studentLogin(req, res) {
     return res.status(400).json({ message: 'username and password are required' });
   }
 
-  // Need passwordHash — use .select('+passwordHash') to override select:false
+  // Need password — use .select('+password') to override select:false
   const student = await Student.findOne({
     username: String(username).trim().toLowerCase(),
-  }).select('+passwordHash').populate('mapId', 'name mapUrl mapNumber');
+  })
+    .select('+password')
+    .populate('setsKey')
+    .populate('mapId');
 
   if (!student) {
     return res.status(401).json({ message: 'Invalid username or password' });
   }
 
-  const passwordMatches = await student.comparePassword(password);
+  const passwordMatches = await bcrypt.compare(password, student.password);
   if (!passwordMatches) {
     return res.status(401).json({ message: 'Invalid username or password' });
   }
@@ -34,8 +38,6 @@ async function studentLogin(req, res) {
     return res.status(403).json({ message: 'Your account has been deactivated. Contact an administrator.' });
   }
 
-  // Update last login (non-critical)
-  Student.updateOne({ _id: student._id }, { $set: { lastLogin: new Date() } }).catch(() => {});
 
   const token = jwt.sign(
     { userId: student._id.toString(), username: student.username },
@@ -60,7 +62,7 @@ async function studentLogin(req, res) {
             mapNumber: student.mapId.mapNumber,
           }
         : null,
-      routeKey: student.routeKey,
+      setsKey: student.setsKey,
     },
   });
 }

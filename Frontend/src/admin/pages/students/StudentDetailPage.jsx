@@ -60,17 +60,6 @@ export default function StudentDetailPage() {
     }
   };
 
-  const handleRegenerateRouteKey = async () => {
-    try {
-      const res = await studentService.regenerateRouteKey(id);
-      showToast(`New route key generated: ${res.routeKey}`, 'success');
-      setConfirmState({ isOpen: false, type: '' });
-      fetchStudent();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to regenerate route key', 'error');
-    }
-  };
-
   const handleDeleteStudent = async () => {
     try {
       await studentService.deleteStudent(id);
@@ -142,12 +131,14 @@ export default function StudentDetailPage() {
             </div>
 
             <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: 'var(--neo-purple-light)' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-purple)' }}>ASSIGNED ROUTE KEY</div>
-              <div style={{ fontSize: 20, fontWeight: 900, fontFamily: 'monospace', color: 'var(--neo-purple)' }}>{student.routeKey}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-purple)' }}>ASSIGNED QUESTION SET</div>
+              <div style={{ fontSize: 20, fontWeight: 900, fontFamily: 'monospace', color: 'var(--neo-purple)' }}>
+                {student.setsKey?.setsKey || 'Unassigned'}
+              </div>
             </div>
 
             <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: 'var(--neo-yellow)' }}>
-              <div style={{ fontSize: 10, fontWeight: 800 }}>ASSIGNED QUESTION MAP</div>
+              <div style={{ fontSize: 10, fontWeight: 800 }}>ASSIGNED WORKADVENTURE MAP</div>
               <div style={{ fontSize: 16, fontWeight: 900 }}>{student.mapId?.name || 'Unassigned'}</div>
               {student.mapId?.mapUrl && (
                 <a
@@ -161,19 +152,25 @@ export default function StudentDetailPage() {
               )}
             </div>
 
-            <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: 'var(--neo-surface)' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-gray)' }}>ACCOUNT STATUS</div>
-              <div style={{ marginTop: 4 }}><StatusBadge status={student.status} /></div>
+            <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: '#ecfdf5' }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#047857' }}>PERSONAL MAIN GATE CODE</div>
+              <div style={{ fontSize: 20, fontWeight: 900, fontFamily: 'monospace', color: '#047857' }}>
+                {student.mainGateCode || 'Auto-generated'}
+              </div>
             </div>
 
             <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: 'var(--neo-surface)' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-gray)' }}>CREATED AT</div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{new Date(student.createdAt).toLocaleString()}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-gray)' }}>GAME STATUS</div>
+              <div style={{ fontSize: 15, fontWeight: 900, textTransform: 'uppercase', marginTop: 4 }}>
+                {student.gameStatus || 'not_started'}
+              </div>
             </div>
 
             <div style={{ padding: 14, border: 'var(--neo-border-sm)', background: 'var(--neo-surface)' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-gray)' }}>LAST LOGIN</div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{student.lastLogin ? new Date(student.lastLogin).toLocaleString() : 'Never Logged In'}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--neo-gray)' }}>HINT PENALTY SECONDS</div>
+              <div style={{ fontSize: 16, fontWeight: 800, marginTop: 4 }}>
+                {student.totalHintPenaltySeconds || 0}s
+              </div>
             </div>
           </div>
         </BentoCard>
@@ -194,14 +191,6 @@ export default function StudentDetailPage() {
             </NeoButton>
 
             <NeoButton
-              variant="white"
-              onClick={() => setConfirmState({ isOpen: true, type: 'regenRouteKey' })}
-              style={{ width: '100%' }}
-            >
-              🔄 REGENERATE ROUTE KEY
-            </NeoButton>
-
-            <NeoButton
               variant="black"
               onClick={() => setConfirmState({ isOpen: true, type: 'delete' })}
               style={{ width: '100%', marginTop: 12 }}
@@ -213,16 +202,6 @@ export default function StudentDetailPage() {
       </div>
 
       {/* CONFIRM DIALOGS */}
-      <ConfirmDialog
-        isOpen={confirmState.isOpen && confirmState.type === 'regenRouteKey'}
-        onClose={() => setConfirmState({ isOpen: false, type: '' })}
-        onConfirm={handleRegenerateRouteKey}
-        title="REGENERATE ROUTE KEY?"
-        message={`Are you sure you want to generate a new unique route key for ${student.name}? The old route key will no longer work.`}
-        confirmLabel="REGENERATE"
-        confirmVariant="purple"
-      />
-
       <ConfirmDialog
         isOpen={confirmState.isOpen && confirmState.type === 'delete'}
         onClose={() => setConfirmState({ isOpen: false, type: '' })}

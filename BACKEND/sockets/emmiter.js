@@ -12,39 +12,48 @@ function room(userId) {
 }
 
 function emitGameStarted(userId, payload) {
-  ioInstance.to(room(userId)).emit('game_started', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('game_started', payload);
 }
 
 function emitAnswerSolved(userId, payload) {
-  ioInstance.to(room(userId)).emit('answer_solved', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('answer_solved', payload);
 }
 
 function emitAnswerRejected(userId, payload) {
-  ioInstance.to(room(userId)).emit('answer_rejected', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('answer_rejected', payload);
 }
 
 function emitCodeVerified(userId, payload) {
-  ioInstance.to(room(userId)).emit('code_verified', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('code_verified', payload);
 }
 
 function emitHintUsed(userId, payload) {
-  ioInstance.to(room(userId)).emit('hint_used', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('hint_used', payload);
 }
 
 function emitBonusUsed(userId, payload) {
-  ioInstance.to(room(userId)).emit('bonus_used', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('bonus_used', payload);
 }
 
 function emitFinalPuzzleUnlocked(userId, payload) {
-  ioInstance.to(room(userId)).emit('final_puzzle_unlocked', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('final_puzzle_unlocked', payload);
 }
 
 function emitFinalSolved(userId, payload) {
-  ioInstance.to(room(userId)).emit('final_solved', payload);
+  if (ioInstance) ioInstance.to(room(userId)).emit('final_solved', payload);
 }
 
 function emitGameCompleted(userId, payload) {
-  ioInstance.to(room(userId)).emit('game_completed', payload);
+  if (ioInstance) {
+    ioInstance.to(room(userId)).emit('game_completed', payload);
+    ioInstance.emit('leaderboard_updated', { userId, ...payload });
+  }
+}
+
+function emitLeaderboardUpdated(payload = {}) {
+  if (ioInstance) {
+    ioInstance.emit('leaderboard_updated', payload);
+  }
 }
 
 module.exports = {
@@ -58,4 +67,5 @@ module.exports = {
   emitFinalPuzzleUnlocked,
   emitFinalSolved,
   emitGameCompleted,
+  emitLeaderboardUpdated,
 };

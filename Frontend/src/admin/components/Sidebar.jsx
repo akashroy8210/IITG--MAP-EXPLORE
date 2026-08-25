@@ -6,14 +6,14 @@ export default function Sidebar() {
 
   const navItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '⚡' },
+    { path: '/admin/questions', label: 'Question Bank', icon: '❓' },
+    { path: '/admin/sets', label: 'Question Sets', icon: '🔢' },
     { path: '/admin/students', label: 'All Students', icon: '🎓' },
     { path: '/admin/students/create', label: 'Create Student', icon: '➕' },
     { path: '/admin/students/bulk-create', label: 'Bulk Create', icon: '📦' },
-    { path: '/admin/maps', label: 'Question Maps', icon: '🗺️' },
+    { path: '/admin/maps', label: 'Campus Maps', icon: '🗺️' },
     { path: '/admin/maps/create', label: 'Create Map', icon: '📍' },
-    { path: '/admin/routes', label: 'Route Keys', icon: '🔑' },
     { path: '/admin/members', label: 'Admin Members', icon: '🛡️' },
-    { path: '/admin/members/add', label: 'Add Member', icon: '👤' },
     { path: '/admin/settings', label: 'Settings', icon: '⚙️' },
   ];
 
