@@ -6,6 +6,8 @@ import Puzzle2 from './pages/Puzzle-2';
 import Puzzle3 from './pages/Puzzle-3';
 import Puzzle4 from './pages/Puzzle-4';
 import Puzzle5 from './pages/Puzzle-5';
+import Maingate from './pages/Maingate';
+function App() {
 
 // Admin imports
 import { AuthProvider } from './admin/auth/AuthContext';
@@ -140,4 +142,4 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
-}
+}}

@@ -129,12 +129,12 @@ export default function InstructionsPage() {
                 Every clue brings you closer to the treasure.
               </div>
 
-              <button
-                className="map-btn"
-                onClick={handleEnterMap}
-              >
-                ENTER THE MAP <span>→</span>
-              </button>
+                <button
+                    className="map-btn"
+                    onClick={()=>window.location.href='https://play.workadventu.re/@/iitgmap/iitgmap/maps/office'}>
+                    ENTER THE MAP <span>→</span>
+                </button>
+
             </div>
 
             <div className="scroll-bottom"></div>
