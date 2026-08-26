@@ -1,11 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import { useState } from 'react'
+import LandingPage from './pages/LandingPage'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import InstructionsPage from './pages/InstructionsPage';
 import Puzzle1 from './pages/Puzzle-1';
 import Puzzle2 from './pages/Puzzle-2';
 import Puzzle3 from './pages/Puzzle-3';
 import Puzzle4 from './pages/Puzzle-4';
 import Puzzle5 from './pages/Puzzle-5';
+import './App.css';
 import Maingate from './pages/Maingate';
 function App() {
 
@@ -31,10 +33,6 @@ import MembersPage from './admin/pages/members/MembersPage';
 import AddMemberPage from './admin/pages/members/AddMemberPage';
 import SettingsPage from './admin/pages/settings/SettingsPage';
 
-// Import Neo-Brutalist CSS for admin panel
-import './admin/admin.css';
-
-export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -180,11 +178,4 @@ export default function App() {
             }
           />
 
-          {/* Fallback */}
-          <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="*" element={<LandingPage />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}}
+export default App

@@ -1,7 +1,20 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../style/Puzzle2.css";
 import MainGateBg from "../assets/MainGateBg.png";
+
+// =========================================================================
+// BACKEND URL CONFIGURATION
+// Enter your backend API base URL or verification endpoint here:
+// =========================================================================
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const VERIFY_CODE_ENDPOINT = `${API_BASE_URL}/game/verify-code`; // <<< ENTER YOUR BACKEND URL HERE
+
+function authHeaders() {
+  const token = localStorage.getItem("student_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 // ---- Puzzle configuration ----
 const PUZZLE_ID = "puzzle-2";
@@ -11,21 +24,121 @@ const REWARD_POINTS = 15;
 export default function Puzzle2() {
   const navigate = useNavigate();
 
+  // Sequence code verification state
+  const [isVerified, setIsVerified] = useState(false);
+  const [sequenceCode, setSequenceCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [nextCode, setNextCode] = useState("");
+
   const [answer, setAnswer] = useState("");
-  const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint
+  const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
   const wrongTimeout = useRef(null);
 
-  function handleSubmit(e) {
+  // Check from backend whether the puzzle has already been completed on load
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkCompletionStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+          { headers: authHeaders() }
+        );
+
+        if (cancelled) return;
+
+        if (res.data?.completed || res.data?.isCompleted) {
+          setIsVerified(true);
+          const codeFromBackend =
+            res.data?.nextCode ||
+            res.data?.code ||
+            res.data?.sequenceCode ||
+            res.data?.locationCode;
+          if (codeFromBackend) {
+            setNextCode(codeFromBackend);
+          }
+          setStatus("completed");
+        }
+      } catch (err) {
+        console.warn("Could not check puzzle completion status with server:", err);
+      }
+    }
+
+    checkCompletionStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleVerifyCode(e) {
+    e.preventDefault();
+    if (!sequenceCode.trim() || verifying) return;
+
+    setVerifying(true);
+    setVerifyError("");
+
+    try {
+      const res = await axios.post(
+        VERIFY_CODE_ENDPOINT,
+        {
+          puzzleId: PUZZLE_ID,
+          code: sequenceCode.trim(),
+        },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.success || res.data?.verified) {
+        setIsVerified(true);
+      } else {
+        setVerifyError(
+          res.data?.message || "Invalid verification code. Please try again."
+        );
+      }
+    } catch (err) {
+      console.warn("Backend sequence verification failed:", err);
+      setVerifyError(
+        err.response?.data?.message || "Failed to verify code with backend. Please try again."
+      );
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     if (status !== "playing" || !answer.trim()) return;
 
-    if (answer.trim().toLowerCase() === ANSWER) {
-      setStatus("correct");
-    } else {
-      setStatus("wrong");
-      clearTimeout(wrongTimeout.current);
-      wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
+    setStatus("checking");
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/game/answer`,
+        { answer: answer.trim() },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.correct || res.data?.success) {
+        const codeFromBackend =
+          res.data?.nextCode ||
+          res.data?.code ||
+          res.data?.sequenceCode ||
+          res.data?.locationCode;
+        if (codeFromBackend) {
+          setNextCode(codeFromBackend);
+        }
+        setStatus("correct");
+        return;
+      }
+    } catch (err) {
+ 
+      console.warn("Could not verify answer with server:", err);
+      return;
     }
+
+    setStatus("wrong");
+    clearTimeout(wrongTimeout.current);
+    wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
   }
 
   return (
@@ -36,15 +149,58 @@ export default function Puzzle2() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        <div className="puzzle-header">
-          <div>
-            <h1>◆ PUZZLE CHALLENGE ◆</h1>
-            <p>
-              Professor X left a note for you in the Physics Department.
-              Read it carefully, then answer the question below.
-            </p>
-          </div>
-        </div>
+        {!isVerified ? (
+          /* =========================================
+             1. SEQUENCE CODE VERIFICATION SCREEN
+             ========================================= */
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>◆ ACCESS VERIFICATION ◆</h1>
+                <p>
+                  Enter the verification code to unlock this puzzle.
+                </p>
+              </div>
+            </div>
+
+            <form className="answer-section" onSubmit={handleVerifyCode}>
+              <p className="answer-label">Enter Verification Code:</p>
+              <div className="answer-row">
+                <input
+                  type="text"
+                  placeholder="Enter code..."
+                  value={sequenceCode}
+                  disabled={verifying}
+                  onChange={(e) => setSequenceCode(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={verifying || !sequenceCode.trim()}
+                >
+                  {verifying ? "VERIFYING..." : "VERIFY CODE"}
+                </button>
+              </div>
+              {verifyError && (
+                <p className="answer-error">{verifyError}</p>
+              )}
+            </form>
+
+          </>
+        ) : (
+          /* =========================================
+             2. ACTUAL PUZZLE CONTENT
+             ========================================= */
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>◆ PUZZLE CHALLENGE ◆</h1>
+                <p>
+                  Professor X left a note for you in the Physics Department.
+                  Read it carefully, then answer the question below.
+                </p>
+              </div>
+            </div>
 
         <div className="physics-note">
           <div className="note-seal">✦</div>
@@ -93,7 +249,7 @@ export default function Puzzle2() {
               className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
               disabled={status !== "playing"}
             >
-              SUBMIT ANSWER
+              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
             </button>
           </div>
           {status === "wrong" && (
@@ -114,13 +270,12 @@ export default function Puzzle2() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => navigate("/Instructions")}>
-          ← BACK TO MAP
-        </button>
 
         <div className="puzzle-tip">
           💡 TIP: Every good physicist reads the fine print twice.
         </div>
+          </>
+        )}
       </div>
 
       {status === "correct" && (
@@ -136,10 +291,24 @@ export default function Puzzle2() {
         </div>
       )}
 
-      {status === "hint" && (
+      {(status === "hint" || status === "completed") && (
         <div className="result-overlay">
-          <div className="result-card">
-            <h2>✦ A NEW RIDDLE ✦</h2>
+          <div className="result-card wide">
+            <h2>✦ QUESTION COMPLETED ✦</h2>
+            <p className="completion-msg">
+              Your question is completed! Enter this code in the next location box.
+            </p>
+
+            {nextCode && (
+              <div className="code-display">
+                <span className="code-label">YOUR NEXT LOCATION CODE</span>
+                <span className="code-value">{nextCode}</span>
+                <span className="code-note">
+                  Enter this code at the next location puzzle page to unlock it.
+                </span>
+              </div>
+            )}
+
             <div className="next-hint-box riddle">
               <span>💡</span>
               <p>
@@ -150,9 +319,6 @@ export default function Puzzle2() {
                 Find me.
               </p>
             </div>
-            <button onClick={() => navigate("/Instructions")}>
-              CONTINUE →
-            </button>
           </div>
         </div>
       )}

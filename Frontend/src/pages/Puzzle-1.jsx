@@ -1,12 +1,17 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import "../style/Puzzle1.css";
 import MainGateBg from "../assets/MainGateBg.png";
 import puzzleImage from "../assets/puzzle-telescope.svg";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 // ---- Puzzle configuration (swap per-location for future Puzzle-2, Puzzle-3 ...) ----
 const PUZZLE_ID = "puzzle-1";
-const ANSWER = "telescope";
+// Verification happens server-side (see handleSubmit) — this is only used
+// to name the object in the "quest complete" message.
+// const ANSWER = "telescope";
 const REWARD_POINTS = 10;
 
 
@@ -32,6 +37,11 @@ function loadProgress() {
   return PIECES.map(() => false);
 }
 
+function authHeaders() {
+  const token = localStorage.getItem("student_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 
 export default function Puzzle1() {
   const navigate = useNavigate();
@@ -47,6 +57,40 @@ export default function Puzzle1() {
 
   const allCollected = collected.every(Boolean);
   const foundCount = collected.filter(Boolean).length;
+
+  // Pull the authoritative collected-pieces list from the backend on load,
+  // so pieces collected earlier (at another location, or another session)
+  // still show up as found and render their image here.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProgress() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/progress`,
+          { headers: authHeaders() }
+        );
+        const collectedPieceIds = res.data?.collectedPieceIds || [];
+        if (cancelled || !Array.isArray(collectedPieceIds)) return;
+
+        setCollected((prev) => {
+          const next = PIECES.map(
+            (p) => prev[p.id] || collectedPieceIds.includes(p.id)
+          );
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+          return next;
+        });
+      } catch (err) {
+        // Backend not available yet — keep using whatever is in localStorage.
+        console.warn("Could not fetch puzzle progress from server:", err);
+      }
+    }
+
+    fetchProgress();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // A location in the game map hands this page a piece by linking to
   // /puzzle-1?collect=<pieceId>. The COLLECT button only shows for the
@@ -76,19 +120,44 @@ export default function Puzzle1() {
     setToast(`Piece found at ${PIECES[pieceId].location}!`);
     window.clearTimeout(collectPiece._t);
     collectPiece._t = window.setTimeout(() => setToast(null), 3000);
+
+    // Persist the collected piece server-side so it's remembered across
+    // locations/sessions. UI already updated above — this just syncs it.
+    axios
+      .post(
+        `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/collect`,
+        { pieceId },
+        { headers: authHeaders() }
+      )
+      .catch((err) => {
+        console.warn("Could not save collected piece to server:", err);
+      });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!allCollected || status !== "playing" || !answer.trim()) return;
 
-    if (answer.trim().toLowerCase() === ANSWER) {
-      setStatus("correct");
-    } else {
-      setStatus("wrong");
-      clearTimeout(wrongTimeout.current);
-      wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
+    setStatus("checking");
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/submit-answer`,
+        { answer: answer.trim() },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.correct) {
+        setStatus("correct");
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not verify answer with server:", err);
     }
+
+    setStatus("wrong");
+    clearTimeout(wrongTimeout.current);
+    wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
   }
 
 
@@ -112,7 +181,7 @@ export default function Puzzle1() {
               the name of the object!
             </p>
           </div>
-          
+  
         </div>
 
         <div className="puzzle-grid-wrap">
@@ -200,7 +269,7 @@ export default function Puzzle1() {
               className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
               disabled={!allCollected || status !== "playing"}
             >
-              SUBMIT ANSWER
+              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
             </button>
           </div>
           {status === "wrong" && (
