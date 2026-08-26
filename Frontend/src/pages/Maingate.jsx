@@ -1,29 +1,18 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import "../style/Maingate.css";
 import MainGateBg from "../assets/MainGateBg.png";
 
-// ---- Mock data — remove once the backend is wired up ----
-const MOCK_VALID_CODE = "8156"; // matches the code revealed at the end of Puzzle 5
-const MOCK_COMPLETED_AT = "2026-08-19T14:32:07.000Z";
+// =========================================================================
+// BACKEND URL CONFIGURATION
+// Enter your backend API base URL or verification endpoint here:
+// =========================================================================
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const VERIFY_GATE_ENDPOINT = `${API_BASE_URL}/game/maingate-code`; // <<< ENTER YOUR BACKEND URL HERE
 
-/**
- * Placeholder for the real gate-verification API call.
- *
- * Swap the body for something like:
- *   const { data } = await axios.post("/api/quest/verify-gate", { code });
- *   return data; // { success, completedAt }
- *
- * The backend is the source of truth for `completedAt` — the frontend
- * never generates its own completion timestamp.
- */
-async function verifyCode(code) {
-  await new Promise((resolve) => setTimeout(resolve, 700));
-
-  const success = code.trim() === MOCK_VALID_CODE;
-  return {
-    success,
-    completedAt: success ? MOCK_COMPLETED_AT : null,
-  };
+function authHeaders() {
+  const token = localStorage.getItem("student_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 const CONFETTI_COLORS = [
@@ -49,10 +38,14 @@ function makeConfettiPieces(count) {
 
 function formatCompletedAt(value) {
   if (!value) return "";
-  return new Date(value).toLocaleString(undefined, {
-    dateStyle: "long",
-    timeStyle: "medium",
-  });
+  try {
+    return new Date(value).toLocaleString(undefined, {
+      dateStyle: "long",
+      timeStyle: "medium",
+    });
+  } catch {
+    return String(value);
+  }
 }
 
 export default function Maingate() {
@@ -63,6 +56,37 @@ export default function Maingate() {
 
   const confettiPieces = useMemo(() => makeConfettiPieces(70), []);
 
+  // Check from backend whether the main gate was already completed on load
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkGateStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/maingate/status`,
+          { headers: authHeaders() }
+        );
+
+        if (cancelled) return;
+
+        if (res.data?.completed || res.data?.isCompleted || res.data?.correct) {
+          const timeVal = res.data?.time || res.data?.completedAt || res.data?.timestamp;
+          if (timeVal) {
+            setCompletedAt(timeVal);
+          }
+          setStatus("success");
+        }
+      } catch (err) {
+        console.warn("Could not check gate completion status with server:", err);
+      }
+    }
+
+    checkGateStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitLock.current || !code.trim() || status === "checking") return;
@@ -71,14 +95,23 @@ export default function Maingate() {
     setStatus("checking");
 
     try {
-      const res = await verifyCode(code);
-      if (res.success) {
-        setCompletedAt(res.completedAt);
+      const res = await axios.post(
+        VERIFY_GATE_ENDPOINT,
+        { code: code.trim() },
+        { headers: authHeaders() }
+      );
+
+      const isCorrect = res.data?.correct ?? res.data?.success;
+      const timeVal = res.data?.time || res.data?.completedAt || res.data?.timestamp;
+
+      if (isCorrect) {
+        setCompletedAt(timeVal);
         setStatus("success");
       } else {
         setStatus("error");
       }
-    } catch {
+    } catch (err) {
+      console.warn("Backend gate verification failed:", err);
       setStatus("error");
     } finally {
       submitLock.current = false;

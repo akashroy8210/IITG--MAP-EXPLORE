@@ -1,456 +1,632 @@
+/* ==========================================================================
+   THE IITG QUEST - FANTASY RPG GAME LOGIN STYLING
+   ========================================================================== */
 
-body{
-    margin:0;
-}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Cinzel+Decorative:wght@700;900&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  background-color: #080604;
+  overflow: hidden;
+}
+
+/* Outer Fullscreen Wrapper */
 .landing-page {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Cinzel', Georgia, serif;
 }
 
-/* Background image */
+/* Background Gate Image - Sharp & Cinematic */
 .gate-bg {
   position: absolute;
   inset: 0;
-
   width: 100%;
   height: 100%;
-
   object-fit: cover;
-
   z-index: 1;
-
-  filter: brightness(0.85) blur(1px);
-
+  filter: brightness(0.8) contrast(1.1) blur(0.5px);
   transform: scale(1.02);
+  transition: transform 10s ease-out;
 }
 
-/* Dark overlay */
-.landing-page::after {
-  content: "";
-
+/* Dark Cinematic Radial Overlay & Vignette */
+.vignette-overlay {
   position: absolute;
   inset: 0;
-
-  background: rgba(0, 0, 0, 0.25);
-
+  background: radial-gradient(
+    circle at center,
+    rgba(14, 10, 7, 0.35) 0%,
+    rgba(10, 7, 5, 0.72) 55%,
+    rgba(4, 3, 2, 0.94) 100%
+  );
   z-index: 2;
-
   pointer-events: none;
 }
 
-/* Banner stays sharp */
-.quest-banner {
+/* ==========================================================================
+   SUBTLE FLOATING EMBERS & ATMOSPHERIC PARTICLES
+   ========================================================================== */
+
+.ember-particles {
   position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
 
-  top: 5%;
-  left: 50%;
+.ember {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe082 0%, #ffab00 70%, rgba(255, 171, 0, 0) 100%);
+  box-shadow: 0 0 8px #ffb300, 0 0 15px rgba(255, 171, 0, 0.5);
+  opacity: 0;
+  animation: floatEmber linear infinite;
+}
 
-  transform: translateX(-50%);
-  width: max(550px, 40vw);
+.ember-1 { left: 10%; width: 4px; height: 4px; animation-duration: 8s; animation-delay: 0s; }
+.ember-2 { left: 25%; width: 5px; height: 5px; animation-duration: 11s; animation-delay: 2s; }
+.ember-3 { left: 42%; width: 3px; height: 3px; animation-duration: 9s; animation-delay: 1s; }
+.ember-4 { left: 58%; width: 6px; height: 6px; animation-duration: 13s; animation-delay: 3s; }
+.ember-5 { left: 73%; width: 4px; height: 4px; animation-duration: 10s; animation-delay: 0.5s; }
+.ember-6 { left: 86%; width: 5px; height: 5px; animation-duration: 12s; animation-delay: 4s; }
+.ember-7 { left: 33%; width: 3px; height: 3px; animation-duration: 7s; animation-delay: 2.5s; }
+.ember-8 { left: 66%; width: 4px; height: 4px; animation-duration: 9.5s; animation-delay: 1.5s; }
 
+@keyframes floatEmber {
+  0% {
+    transform: translateY(105vh) translateX(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-10vh) translateX(40px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   GAME HUD CORNER ELEMENTS
+   ========================================================================== */
+
+.hud-element {
+  position: absolute;
+  z-index: 10;
+  padding: 6px 14px;
+  background: rgba(18, 13, 9, 0.78);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 4px;
+  box-shadow: 
+    inset 0 0 10px rgba(0, 0, 0, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(212, 175, 55, 0.15);
+  backdrop-filter: blur(6px);
+  letter-spacing: 1.5px;
+  user-select: none;
+}
+
+.hud-top-left {
+  top: 24px;
+  left: 28px;
+  border-left: 3px solid #d4af37;
+}
+
+.hud-top-right {
+  top: 24px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-right: 3px solid #d4af37;
+}
+
+.hud-bottom-left {
+  bottom: 24px;
+  left: 28px;
+  border-left: 3px solid #b88d44;
+}
+
+.hud-bottom-right {
+  bottom: 24px;
+  right: 28px;
+  border-right: 3px solid #b88d44;
+}
+
+.hud-label {
+  font-size: 9px;
+  color: #a3947c;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hud-value {
+  font-size: 11px;
+  color: #f3d79b;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(243, 215, 155, 0.35);
+}
+
+.online-pulse {
+  width: 8px;
+  height: 8px;
+  background-color: #4cd964;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #4cd964, 0 0 12px rgba(76, 217, 100, 0.6);
+  animation: pulseGlow 1.8s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.15); }
+}
+
+/* ==========================================================================
+   MAIN CENTER CONTAINER & TITLE
+   ========================================================================== */
+
+.quest-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px 16px;
+}
+
+/* Game Title Header */
+.game-header {
+  text-align: center;
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.game-title {
+  font-size: clamp(30px, 5.5vw, 44px);
+  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(
+    180deg,
+    #FFFFFF 0%,
+    #FFF4D1 20%,
+    #F3CA68 50%,
+    #C48D26 80%,
+    #7A4F05 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: 
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 0 25px rgba(243, 202, 104, 0.45));
+  margin: 0;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.game-subtitle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sub-line {
+  height: 1.5px;
+  width: 45px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(243, 202, 104, 0.85),
+    transparent
+  );
+}
+
+.game-subtitle {
+  font-size: clamp(11px, 2vw, 13px);
+  color: #ebd19e;
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.9);
+  margin: 0;
+}
+
+.game-tagline {
+  font-size: 10.5px;
+  color: #b59e7a;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  letter-spacing: 2px;
+  margin-top: 4px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* ==========================================================================
+   ORNATE RPG QUEST LOGIN PANEL
+   ========================================================================== */
+
+.login-card {
+  position: relative;
+  width: 100%;
+  padding: 30px 28px 26px;
+  background: linear-gradient(
+    160deg,
+    rgba(38, 27, 19, 0.95) 0%,
+    rgba(22, 15, 11, 0.96) 50%,
+    rgba(13, 9, 6, 0.98) 100%
+  );
+  border: 2px solid #b88d44;
+  border-radius: 6px;
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.88),
+    inset 0 0 35px rgba(0, 0, 0, 0.85),
+    inset 0 0 15px rgba(212, 175, 55, 0.18),
+    0 0 30px rgba(184, 141, 68, 0.3);
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+/* Double Outer Border Frame Accent */
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+/* Inner Gold Bevel Line */
+.login-card::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(184, 141, 68, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Corner Ornaments */
+.corner-ornament {
+  position: absolute;
+  color: #d4af37;
+  font-size: 13px;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+  pointer-events: none;
   z-index: 5;
 }
 
+.corner-ornament.top-left { top: 7px; left: 9px; }
+.corner-ornament.top-right { top: 7px; right: 9px; }
+.corner-ornament.bottom-left { bottom: 7px; left: 9px; }
+.corner-ornament.bottom-right { bottom: 7px; right: 9px; }
 
-.login-card {
-
-  position: absolute;
-
-  left: 50%;
-
-  bottom: 6%;
-
-  transform: translateX(-50%);
-
-  width: 360px;
-
-  padding: 26px 28px 22px;
-
-  z-index: 6;
-
-  text-align: center;
-
-  /* dark wooden / leather feel */
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(63, 43, 31, 0.94),
-      rgba(37, 25, 19, 0.96)
-    );
-
-  border: 1px solid rgba(224, 177, 91, 0.8);
-
-  border-radius: 14px;
-
-  box-shadow:
-    0 12px 35px rgba(0, 0, 0, 0.65),
-    inset 0 0 20px rgba(255, 205, 120, 0.08);
-
-  backdrop-filter: blur(8px);
-}
-
-
-/* Small gold line at top */
-
-.login-card::before {
-
-  content: "";
-
-  position: absolute;
-
-  top: -1px;
-  left: 12%;
-
-  width: 76%;
-
-  height: 2px;
-
-  background: #d8a94e;
-
-  box-shadow:
-    0 0 8px rgba(216, 169, 78, 0.6);
-}
-
-
-/* =========================
-   HEADING
-========================= */
-
+/* Heading */
 .login-heading {
-
-  color: #f4d58b;
-
-  font-size: 23px;
-
-  font-weight: 700;
-
-  letter-spacing: 1.5px;
-
-  text-shadow:
-    2px 2px 3px rgba(0, 0, 0, 0.7);
+  color: #f7e3b5;
+  font-size: clamp(16px, 3.5vw, 19px);
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.9),
+    0 0 12px rgba(247, 227, 181, 0.35);
+  margin-bottom: 8px;
 }
-
 
 .login-divider {
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  gap: 10px;
-
-  margin: 7px 0 5px;
-
-  color: #d8a94e;
-
-  font-size: 13px;
+  margin-bottom: 22px;
+  color: #c29948;
+  font-size: 12px;
 }
-
 
 .login-divider::before,
 .login-divider::after {
-
   content: "";
-
-  width: 65px;
-
+  flex: 1;
   height: 1px;
-
-  background: rgba(216, 169, 78, 0.65);
+  background: linear-gradient(90deg, transparent, rgba(194, 153, 72, 0.75), transparent);
+  margin: 0 10px;
 }
 
+/* ==========================================================================
+   INPUT FIELDS
+   ========================================================================== */
 
-.login-description {
-
-  color: #d8c8ad;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 12px;
-
-  margin-bottom: 18px;
+.quest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 6px;
+}
 
-/* =========================
-   INPUTS
-========================= */
+.input-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #cbb287;
+  font-family: 'Georgia', serif;
+  letter-spacing: 1.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
 
 .input-wrapper {
-
   display: flex;
-
   align-items: center;
-
-  width: 100%;
-
   height: 48px;
-
-  margin-bottom: 12px;
-
-  padding: 0 14px;
-
-  border-radius: 8px;
-
-  background: rgba(20, 14, 10, 0.65);
-
-  border: 1px solid rgba(192, 151, 75, 0.55);
-
-  transition: 0.25s;
+  background: rgba(10, 7, 5, 0.85);
+  border: 1.5px solid #8c6a32;
+  border-radius: 4px;
+  padding: 0 12px;
+  box-shadow: 
+    inset 0 3px 8px rgba(0, 0, 0, 0.85),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
 
 .input-wrapper:focus-within {
-
-  border-color: #e2b85e;
-
-  box-shadow:
-    0 0 8px rgba(226, 184, 94, 0.25);
+  border-color: #f5c242;
+  box-shadow: 
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 0 14px rgba(245, 194, 66, 0.5);
+  background: rgba(16, 11, 8, 0.95);
 }
-
 
 .input-icon {
-
-  width: 28px;
-
-  color: #e2b85e;
-
-  font-size: 19px;
-
-  margin-right: 8px;
+  font-size: 16px;
+  margin-right: 10px;
+  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.4));
+  user-select: none;
 }
 
-
 .input-wrapper input {
-
   flex: 1;
-
   border: none;
-
   outline: none;
-
   background: transparent;
-
-  color: #fff1ce;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 14px;
-
+  color: #fff3d1;
+  font-family: 'Georgia', serif;
+  font-size: 13.5px;
   letter-spacing: 0.5px;
 }
 
-
 .input-wrapper input::placeholder {
-
-  color: #a99a86;
-
+  color: #7d6e5a;
   font-size: 12px;
-
-  letter-spacing: 1px;
+  font-style: italic;
+  letter-spacing: 0.5px;
 }
 
-
-/* =========================
-   BUTTON
-========================= */
+/* ==========================================================================
+   PRIMARY BUTTON - "START ADVENTURE"
+   ========================================================================== */
 
 .start-button {
-
+  position: relative;
   width: 100%;
-
-  height: 50px;
-
-  margin-top: 7px;
-
-  border: 1px solid #f0ca70;
-
-  border-radius: 25px;
-
+  height: 52px;
+  margin-top: 10px;
+  border: 2px solid #ffd675;
+  border-radius: 4px;
   cursor: pointer;
-
-  color: #3b2515;
-
-  font-family: Georgia, serif;
-
-  font-size: 15px;
-
-  font-weight: 800;
-
-  letter-spacing: 1px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #f3d486,
-      #c9943d
-    );
-
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.45),
-    inset 0 1px rgba(255, 245, 200, 0.8);
-
-  transition: all 0.25s ease;
+  background: linear-gradient(
+    180deg,
+    #ffe79e 0%,
+    #d49826 40%,
+    #9e6912 100%
+  );
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(212, 175, 55, 0.4);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
 }
 
+.button-text {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #241403;
+  letter-spacing: 2px;
+  text-shadow: 
+    0 1px 1px rgba(255, 240, 180, 0.7),
+    0 -1px 1px rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+}
 
 .start-button:hover {
-
-  transform: translateY(-2px);
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffe3a0,
-      #d6a74d
-    );
-
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.55),
-    0 0 12px rgba(240, 202, 112, 0.3);
+  transform: translateY(-2.5px) scale(1.015);
+  background: linear-gradient(
+    180deg,
+    #fff3c4 0%,
+    #e6aa35 40%,
+    #b37918 100%
+  );
+  border-color: #ffffff;
+  box-shadow: 
+    0 10px 28px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 28px rgba(245, 194, 66, 0.7);
 }
-
 
 .start-button:active {
-
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 
+    0 3px 8px rgba(0, 0, 0, 0.85),
+    inset 0 2px 5px rgba(0, 0, 0, 0.6);
 }
 
-
-/* =========================
-   ORGANIZER TEXT
-========================= */
-
-.organizer-text {
-
-  margin-top: 13px;
-
-  color: #9f907d;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 10px;
-
-  letter-spacing: 0.3px;
+.start-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: grayscale(30%);
 }
+
+/* ==========================================================================
+   ERROR NOTIFICATION ("QUEST DENIED")
+   ========================================================================== */
 
 .quest-error {
-    z-index:10000;
-  width: 30%;
-
+  position: absolute;
+  top: -65px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 400px;
   display: flex;
-  top:10px;
   align-items: center;
-
   gap: 12px;
-
-  margin: 12px 0;
-
-  padding: 11px 14px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(82, 42, 24, 0.95),
-      rgba(48, 27, 18, 0.96)
-    );
-
-  border: 1px solid #b87943;
-
-  border-left: 4px solid #d19a4e;
-
-  border-radius: 8px;
-
-  box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.3),
-    0 4px 10px rgba(0, 0, 0, 0.3);
-
-  animation: questErrorAppear 0.25s ease-out;
+  padding: 12px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(88, 22, 22, 0.96),
+    rgba(48, 12, 12, 0.97)
+  );
+  border: 1.5px solid #d44e4e;
+  border-left: 4px solid #ff6b6b;
+  border-radius: 4px;
+  box-shadow: 
+    0 8px 22px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  animation: questErrorAppear 0.3s ease-out;
 }
 
-
-/* Warning icon */
-
 .error-icon {
-  width: 28px;
-  height: 28px;
-
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #d44e4e;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-
-  background: #c58b45;
-
-  color: #3d2113;
-
-  font-family: Georgia, serif;
-
-  font-size: 16px;
   font-weight: bold;
-
-  box-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(212, 78, 78, 0.7);
 }
-
-
-/* Text */
 
 .error-content {
   text-align: left;
 }
 
 .error-title {
-  color: #e8bd70;
-
-  font-family: Georgia, "Times New Roman", serif;
-
-  font-size: 12px;
-
-  font-weight: bold;
-
-  letter-spacing: 1.2px;
-
-  margin-bottom: 3px;
+  color: #ffb8b8;
+  font-size: 11px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 1.5px;
 }
 
 .error-message {
-  color: #d8c3a5;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 12px;
-
-  line-height: 1.4;
+  color: #f7d4d4;
+  font-size: 11.5px;
+  font-family: 'Georgia', serif;
+  line-height: 1.35;
 }
 
-
-/* Animation */
-
 @keyframes questErrorAppear {
-
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translate(-50%, -10px);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT BREAKPOINTS
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .hud-element {
+    padding: 5px 10px;
   }
 
+  .hud-top-left { top: 16px; left: 16px; }
+  .hud-top-right { top: 16px; right: 16px; }
+  .hud-bottom-left { bottom: 16px; left: 16px; }
+  .hud-bottom-right { bottom: 16px; right: 16px; }
+
+  .quest-container {
+    max-width: 90vw;
+    padding: 10px;
+  }
+
+  .login-card {
+    padding: 24px 20px 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud-top-left, .hud-bottom-left {
+    display: none; /* Keep top-right & bottom-right for clean mobile HUD */
+  }
+
+  .hud-top-right { top: 12px; right: 12px; }
+  .hud-bottom-right { bottom: 12px; right: 12px; }
+
+  .game-title {
+    font-size: 28px;
+    letter-spacing: 2px;
+  }
+
+  .game-subtitle {
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+  }
+
+  .sub-line {
+    width: 25px;
+  }
+
+  .login-card {
+    padding: 20px 16px 18px;
+  }
+
+  .start-button {
+    height: 48px;
+  }
+
+  .button-text {
+    font-size: 13.5px;
+    letter-spacing: 1px;
+  }
 }
