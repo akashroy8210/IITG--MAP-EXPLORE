@@ -1,28 +1,24 @@
 const Student = require('../models/Student');
 const Map = require('../models/Map');
+const Sets = require('../models/Sets.model');
 const { nextUserNumber } = require('./userNumber.service');
 const { generateInstagramUsername } = require('./username.service');
 const { generatePassword } = require('./password.service');
-const { generateUniqueRouteKey, generateUniqueMainGateCode } = require('./routeKey.service');
+const { generateUniqueMainGateCode } = require('./routeKey.service');
 const { claimMapSlot, releaseMapSlot } = require('./mapAssignment.service');
 
 /**
+ * Helper to pick next available SetsKey round-robin
+ */
+async function getRoundRobinSet() {
+  const sets = await Sets.find({}).sort({ setsKey: 1 });
+  if (sets.length === 0) return null;
+  const count = await Student.countDocuments();
+  return sets[count % sets.length];
+}
+
+/**
  * Create a single student with all auto-generated fields.
- *
- * Steps (all backend-driven — frontend sends only name + email):
- *  1. Generate sequential userNumber (atomic counter)
- *  2. Derive unique Instagram-style username from student name
- *  3. Generate secure temporary password
- *  4. Hash password
- *  5. Claim a map slot (atomic, concurrency-safe)
- *  6. Generate unique routeKey & unique Main Gate victory code
- *  7. Save Student document
- *  8. Push studentId into Map.studentIds (display reference)
- *
- * Returns { student, temporaryPassword } — temporaryPassword is the
- * plain-text password that must be returned to the admin ONCE and never stored.
- *
- * Throws on any failure. Caller should handle 503 for no-map-available.
  */
 async function createStudent({ name, email }) {
   // 1 & 2 — userNumber + Instagram-style username
@@ -36,19 +32,18 @@ async function createStudent({ name, email }) {
   // 5 — map slot (atomic)
   const map = await claimMapSlot();
   if (!map) {
-    const err = new Error('No available map slot. All maps have reached their maximum capacity of 10 students. Please create a new map first.');
+    const err = new Error('No available map slot. All maps have reached their maximum capacity. Please create a new map first.');
     err.status = 503;
     throw err;
   }
 
-  // 6 — routeKey and unique Main Gate Code
-  let routeKey;
+  // 6 — setsKey and unique Main Gate Code
   let mainGateCode;
+  let assignedSet;
   try {
-    routeKey = await generateUniqueRouteKey(userNumber);
     mainGateCode = await generateUniqueMainGateCode();
+    assignedSet = await getRoundRobinSet();
   } catch (err) {
-    // Roll back the map slot claim
     await releaseMapSlot(map._id);
     throw err;
   }
@@ -61,9 +56,9 @@ async function createStudent({ name, email }) {
       username,
       name,
       email: email || null,
-      passwordHash,
+      password: passwordHash,
       mapId: map._id,
-      routeKey,
+      setsKey: assignedSet ? assignedSet._id : null,
       mainGateCode,
     });
   } catch (err) {
@@ -71,22 +66,21 @@ async function createStudent({ name, email }) {
     throw err;
   }
 
-  // 8 — add student ref to map (non-critical; don't fail on error here)
+  // 8 — add student ref to map (non-critical)
   await Map.updateOne({ _id: map._id }, { $addToSet: { studentIds: student._id } }).catch(() => {});
 
-  return { student, map, temporaryPassword };
+  return { student, map, temporaryPassword, mainGateCode, assignedSet };
 }
 
 /**
  * Bulk-create students from an array of { name, email } objects.
- * Returns per-student results including failures with reasons.
  */
 async function bulkCreateStudents(entries) {
   const results = [];
 
   for (const entry of entries) {
     try {
-      const { student, map, temporaryPassword } = await createStudent({
+      const { student, map, temporaryPassword, mainGateCode, assignedSet } = await createStudent({
         name: entry.name,
         email: entry.email,
       });
@@ -98,9 +92,10 @@ async function bulkCreateStudents(entries) {
         userNumber: student.userNumber,
         username: student.username,
         temporaryPassword,
+        mainGateCode,
         mapId: map._id,
         mapName: map.name,
-        routeKey: student.routeKey,
+        setsKey: assignedSet ? assignedSet.setsKey : null,
       });
     } catch (err) {
       results.push({

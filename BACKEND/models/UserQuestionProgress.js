@@ -3,19 +3,27 @@ const { Schema } = mongoose;
 
 const attemptSchema = new Schema(
   {
-    value: { type: String, required: true },
-    correct: { type: Boolean, required: true },
-    at: { type: Date, default: Date.now },
+    answer: [
+      {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true,
+      },
+    ],
+    isCorrect: { type: Boolean, required: true },
+    attemptedAt: { type: Date, default: Date.now },
   },
   { _id: false }
 );
 
-const PROGRESS_STATUS = ['active', 'answer_solved', 'code_verified'];
+const PROGRESS_STATUS = ['unsolved', 'answer_solved', 'location_verified'];
 
 /**
- * One row per (student, question) — the append-only ledger of what happened
- * at each stage. Unique compound index on (userId, questionId) ensures atomic
- * answer/code submissions.
+ * User Question Progress
+ * One record per (student, question).
+ * Lifecycle: unsolved -> answer_solved -> location_verified
+ * Each student has an auto-generated unique verificationCode per question.
  */
 const userQuestionProgressSchema = new Schema(
   {
@@ -23,27 +31,36 @@ const userQuestionProgressSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Student',
       required: true,
+      index: true,
     },
     questionId: {
       type: Schema.Types.ObjectId,
       ref: 'Question',
       required: true,
-    },
-    stageIndex: {
-      type: Number,
-      required: true,
+      index: true,
     },
     status: {
       type: String,
       enum: PROGRESS_STATUS,
-      default: 'active',
+      default: 'unsolved',
+    },
+    // Auto-generated unique numeric location verification code for this specific student
+    verificationCode: {
+      type: String,
+      default: null,
+      trim: true,
     },
     answerAttempts: { type: [attemptSchema], default: [] },
+    codeAttempts: [
+      {
+        code: { type: String, required: true },
+        isCorrect: { type: Boolean, required: true },
+        attemptedAt: { type: Date, default: Date.now },
+      },
+    ],
     solvedAt: { type: Date, default: null },
-    codeAttempts: { type: [attemptSchema], default: [] },
-    codeVerifiedAt: { type: Date, default: null },
-    hintsUsed: { type: [Number], default: [] },
-    bonusUsed: { type: Boolean, default: false },
+    verifiedAt: { type: Date, default: null },
+    hintsUsed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

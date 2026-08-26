@@ -39,19 +39,18 @@ async function generateUniqueRouteKey(userNumber = 0) {
 }
 
 /**
- * Generate a unique personal Main Gate code for a student.
- * Examples: "GATE-7391", "GATE-8156", "GATE-2409"
+ * Generate a unique personal Main Gate code for a student (pure 4-digit numeric code).
+ * Examples: "7391", "8156", "2409"
  */
 async function generateUniqueMainGateCode() {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
-    const code = `GATE-${randomDigits}`;
+    const code = String(Math.floor(1000 + Math.random() * 9000)); // 4 digit numeric code
     const exists = await Student.exists({ mainGateCode: code });
     if (!exists) return code;
   }
 
-  // Fallback with 6 chars
-  return `GATE-${Math.floor(100000 + Math.random() * 900000)}`;
+  // Fallback with 6 digits
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
 module.exports = { generateUniqueRouteKey, generateUniqueMainGateCode, generateRaw, ROUTE_GROUPS };
