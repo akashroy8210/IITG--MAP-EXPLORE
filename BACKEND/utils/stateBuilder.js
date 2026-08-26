@@ -1,77 +1,100 @@
 const Student = require('../models/Student');
 const Question = require('../models/Question');
+const Sets = require('../models/Sets.model');
 const UserQuestionProgress = require('../models/UserQuestionProgress');
+const { computeAdjustedTimeSeconds } = require('./scoring');
 
-// Strip server-only fields before sending question to client
+/**
+ * Sanitizes a Question document for client delivery.
+ * Strips secret fields: `answer` and `verificationCode`.
+ */
 function toPublicQuestion(question) {
   if (!question) return null;
   return {
-    _id: question._id,
-    stageIndex: question.stageIndex,
-    type: question.type,
-    promptText: question.promptText,
-    promptAssets: question.promptAssets,
-    isFinalPuzzle: question.isFinalPuzzle,
-    bonus: question.bonus
-      ? { description: question.bonus.description, rewardSeconds: question.bonus.rewardSeconds }
+    id: question._id,
+    Question: question.Question,
+    QuestionAssets: question.QuestionAssets || [],
+    nextLocationHint: question.nextLocationHint,
+    hints: question.hints
+      ? {
+          text: question.hints.text,
+          penaltySeconds: question.hints.penaltySeconds,
+        }
       : null,
+    isFirstPuzzle: question.isFirstPuzzle || false,
+    isFinalPuzzle: question.isFinalPuzzle || false,
   };
 }
 
 /**
- * Build the full state object for a student.
- * Used by GET /api/student/me and the state_sync socket event.
+ * Compiles a student's full real-time game session state.
  */
 async function buildUserState(userId) {
-  const student = await Student.findById(userId).populate('mapId', 'name mapUrl mapNumber');
+  const student = await Student.findById(userId)
+    .populate('mapId', 'name mapNumber mapUrl')
+    .populate('setsKey');
+
   if (!student) return null;
 
-  let currentQuestion = null;
-  let hintsAvailable = [];
-  let bonusAvailable = false;
+  const [currentQuestion, progressList] = await Promise.all([
+    student.currentQuestionId ? Question.findById(student.currentQuestionId) : null,
+    UserQuestionProgress.find({ userId: student._id }).lean(),
+  ]);
 
-  if (student.currentQuestionId && student.gameStatus === 'in_progress') {
-    const [question, progress] = await Promise.all([
-      Question.findById(student.currentQuestionId),
-      UserQuestionProgress.findOne({ userId: student._id, questionId: student.currentQuestionId }),
-    ]);
+  const { rawTimeSeconds, adjustedTimeSeconds } = computeAdjustedTimeSeconds({
+    startedAt: student.startedAt,
+    completedAt: student.completedAt,
+    totalHintPenaltySeconds: student.totalHintPenaltySeconds,
+  });
 
-    if (question) {
-      currentQuestion = toPublicQuestion(question);
-      const usedHints = new Set(progress?.hintsUsed || []);
-      hintsAvailable = (question.hints || []).map(h => ({
-        hintNumber: h.hintNumber,
-        penaltySeconds: h.penaltySeconds,
-        used: usedHints.has(h.hintNumber),
-      }));
-      bonusAvailable = !!question.bonus && !progress?.bonusUsed;
+  const currentProgress = progressList.find(
+    (p) => String(p.questionId) === String(student.currentQuestionId)
+  );
+
+  let currentStageIndex = 0;
+  let totalStages = 0;
+  if (student.setsKey && Array.isArray(student.setsKey.questions)) {
+    totalStages = student.setsKey.questions.length;
+    const foundIdx = student.setsKey.questions.findIndex(
+      (qId) => String(qId._id || qId) === String(student.currentQuestionId)
+    );
+    if (foundIdx !== -1) {
+      currentStageIndex = foundIdx;
     }
   }
 
   return {
-    userId: student._id,
-    userNumber: student.userNumber,
-    username: student.username,
-    name: student.name,
-    status: student.status,
-    map: student.mapId
-      ? {
-          id: student.mapId._id,
-          name: student.mapId.name,
-          mapUrl: student.mapId.mapUrl,
-          mapNumber: student.mapId.mapNumber,
-        }
-      : null,
-    routeKey: student.routeKey,
-    gameStatus: student.gameStatus,
-    startedAt: student.startedAt,
-    completedAt: student.completedAt,
-    currentStageIndex: student.currentStageIndex,
-    currentQuestion,
-    hintsAvailable,
-    bonusAvailable,
-    totalHintPenaltySeconds: student.totalHintPenaltySeconds,
-    totalBonusRewardSeconds: student.totalBonusRewardSeconds,
+    student: {
+      id: student._id,
+      userNumber: student.userNumber,
+      username: student.username,
+      name: student.name,
+      email: student.email,
+      status: student.status,
+      map: student.mapId
+        ? {
+            id: student.mapId._id,
+            name: student.mapId.name,
+            mapNumber: student.mapId.mapNumber,
+            mapUrl: student.mapId.mapUrl,
+          }
+        : null,
+      setsKey: student.setsKey ? student.setsKey.setsKey || student.setsKey : null,
+    },
+    game: {
+      status: student.gameStatus,
+      startedAt: student.startedAt,
+      completedAt: student.completedAt,
+      currentStageIndex,
+      totalStages,
+      currentQuestion: toPublicQuestion(currentQuestion),
+      currentQuestionStatus: currentProgress ? currentProgress.status : 'unsolved',
+      hintsUsed: currentProgress ? Boolean(currentProgress.hintsUsed) : false,
+      elapsedSeconds: rawTimeSeconds,
+      adjustedTimeSeconds,
+      stagesCompleted: progressList.filter((p) => p.status === 'location_verified').length,
+      finalAnswerSolved: Boolean(student.finalAnswerSolvedAt),
+    },
   };
 }
 

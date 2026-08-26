@@ -1,26 +1,18 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-/**
- * Atomic sequence counter.
- * Usage: Counter.nextValue('studentUserNumber') → 100001, 100002, …
- */
-const counterSchema = new mongoose.Schema({
-  _id: { type: String, required: true },   // e.g. 'studentUserNumber'
-  seq: { type: Number, default: 0 },
+const counterSchema = new Schema({
+  _id: { type: String, required: true },
+  seq: { type: Number, default: 100000 },
 });
 
-/**
- * Atomically increment and return the next value.
- * findOneAndUpdate with $inc is a single round-trip; MongoDB guarantees
- * no two callers receive the same returned value.
- */
-counterSchema.statics.nextValue = async function (name) {
-  const doc = await this.findOneAndUpdate(
-    { _id: name },
+counterSchema.statics.nextValue = async function (counterName) {
+  const counter = await this.findOneAndUpdate(
+    { _id: counterName },
     { $inc: { seq: 1 } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
-  return doc.seq;
+  return counter.seq;
 };
 
 module.exports = mongoose.model('Counter', counterSchema);

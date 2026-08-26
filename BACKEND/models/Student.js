@@ -14,7 +14,7 @@ const studentSchema = new Schema(
       index: true,
     },
 
-    // Auto-generated from userNumber: "user100001"
+    // Auto-generated from userNumber: "user100001" or instagram style "rahul_sharma"
     username: {
       type: String,
       required: true,
@@ -37,7 +37,7 @@ const studentSchema = new Schema(
       default: null,
     },
 
-    passwordHash: {
+    password: {
       type: String,
       required: true,
       select: false, // never returned by default in queries
@@ -55,68 +55,57 @@ const studentSchema = new Schema(
       default: 'active',
     },
 
-    // Assigned map
+    // Assigned WorkAdventure map (1 of 5 routes)
     mapId: {
       type: Schema.Types.ObjectId,
       ref: 'Map',
       default: null,
-    },
-
-    // Unique route key for this student (e.g. "ROUTE_A_K92M")
-    routeKey: {
-      type: String,
-      unique: true,
-      sparse: true,  // allows multiple null values during creation
-      uppercase: true,
-      trim: true,
       index: true,
     },
 
-    // Unique personal Main Gate victory verification code (e.g. "GATE-7391")
+    // Assigned question sequence set
+    setsKey: {
+      type: Schema.Types.ObjectId,
+      ref: 'Sets',
+      default: null,
+      index: true,
+    },
+
+    // Unique personal Main Gate victory verification code (e.g. "GATE-7391" or "7391")
     mainGateCode: {
       type: String,
-      unique: true,
-      sparse: true,
-      uppercase: true,
-      trim: true,
+      default: null,
       index: true,
     },
 
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
-
-    // Game progress fields (mirrors old Team fields)
+    // Game progress fields
     gameStatus: {
       type: String,
       enum: ['not_started', 'in_progress', 'completed'],
       default: 'not_started',
+      index: true,
     },
     startedAt: { type: Date, default: null },
     completedAt: { type: Date, default: null },
-    currentStageIndex: { type: Number, default: 0 },
     currentQuestionId: {
       type: Schema.Types.ObjectId,
       ref: 'Question',
       default: null,
     },
     totalHintPenaltySeconds: { type: Number, default: 0 },
-    totalBonusRewardSeconds: { type: Number, default: 0 },
     finalAnswerSolvedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// ---- Password helpers ----
-
+// Password hashing helper
 studentSchema.statics.hashPassword = async function (plainPassword) {
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(plainPassword, salt);
 };
 
 studentSchema.methods.comparePassword = function (plainPassword) {
-  return bcrypt.compare(plainPassword, this.passwordHash);
+  return bcrypt.compare(plainPassword, this.password);
 };
 
 module.exports = mongoose.model('Student', studentSchema);

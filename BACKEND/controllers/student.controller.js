@@ -1,11 +1,9 @@
 const Student = require('../models/Student');
 const Map = require('../models/Map');
+const Sets = require('../models/Sets.model');
 const UserQuestionProgress = require('../models/UserQuestionProgress');
-const HintUsageLog = require('../models/HintUsageLog');
-const BonusUsageLog = require('../models/BonusUsageLog');
 const { createStudent, bulkCreateStudents } = require('../services/student.service');
 const { generatePassword } = require('../services/password.service');
-const { generateUniqueRouteKey } = require('../services/routeKey.service');
 
 // ─── GET /api/admin/students ──────────────────────────────────────────────────
 
@@ -16,6 +14,7 @@ async function listStudents(req, res) {
     search = '',
     status,
     mapId,
+    setsKey,
     sortBy = 'userNumber',
     sortOrder = 'asc',
   } = req.query;
@@ -28,13 +27,13 @@ async function listStudents(req, res) {
   const filter = {};
   if (status) filter.status = status;
   if (mapId) filter.mapId = mapId;
+  if (setsKey) filter.setsKey = setsKey;
   if (search.trim()) {
     const re = new RegExp(search.trim(), 'i');
     filter.$or = [
       { username: re },
       { name: re },
       { email: re },
-      { routeKey: re },
       ...(isNaN(search) ? [] : [{ userNumber: Number(search) }]),
     ];
   }
@@ -44,6 +43,7 @@ async function listStudents(req, res) {
   const [students, total] = await Promise.all([
     Student.find(filter)
       .populate('mapId', 'name mapNumber mapUrl')
+      .populate('setsKey', 'setsKey')
       .sort({ [sortBy]: sortDir })
       .skip(skip)
       .limit(limitNum)
@@ -72,7 +72,7 @@ async function createSingleStudent(req, res) {
   }
 
   try {
-    const { student, map, temporaryPassword } = await createStudent({
+    const { student, map, temporaryPassword, mainGateCode, assignedSet } = await createStudent({
       name: name.trim(),
       email: email ? email.trim().toLowerCase() : null,
     });
@@ -85,7 +85,8 @@ async function createSingleStudent(req, res) {
         username: student.username,
         name: student.name,
         email: student.email,
-        routeKey: student.routeKey,
+        setsKey: assignedSet ? assignedSet.setsKey : null,
+        mainGateCode,
         status: student.status,
         map: {
           id: map._id,
@@ -95,7 +96,7 @@ async function createSingleStudent(req, res) {
         },
         createdAt: student.createdAt,
       },
-      temporaryPassword, // ← returned once only; never stored in plain text
+      temporaryPassword,
     });
   } catch (err) {
     const status = err.status || 500;
@@ -112,7 +113,6 @@ async function bulkCreate(req, res) {
     return res.status(400).json({ message: 'Body must include a non-empty "students" array' });
   }
 
-  // Validate each entry has at least a name
   const valid = [];
   const preErrors = [];
   for (const entry of entries) {
@@ -125,10 +125,9 @@ async function bulkCreate(req, res) {
 
   const results = await bulkCreateStudents(valid);
 
-  // Merge pre-validation errors
-  const allResults = [...preErrors.map(e => ({ ...e, status: 'failed' })), ...results];
-  const created = allResults.filter(r => r.status === 'created').length;
-  const failed = allResults.filter(r => r.status === 'failed').length;
+  const allResults = [...preErrors.map((e) => ({ ...e, status: 'failed' })), ...results];
+  const created = allResults.filter((r) => r.status === 'created').length;
+  const failed = allResults.filter((r) => r.status === 'failed').length;
 
   res.status(failed > 0 ? (created > 0 ? 207 : 200) : 201).json({
     summary: { total: allResults.length, created, failed },
@@ -140,7 +139,8 @@ async function bulkCreate(req, res) {
 
 async function getStudent(req, res) {
   const student = await Student.findById(req.params.id)
-    .populate('mapId', 'name mapNumber mapUrl capacity assignedCount status');
+    .populate('mapId', 'name mapNumber mapUrl capacity assignedCount status')
+    .populate('setsKey');
 
   if (!student) return res.status(404).json({ message: 'Student not found' });
 
@@ -175,29 +175,31 @@ async function resetPassword(req, res) {
   const newPassword = generatePassword();
   const passwordHash = await Student.hashPassword(newPassword);
 
-  await Student.updateOne({ _id: student._id }, { $set: { passwordHash } });
+  await Student.updateOne({ _id: student._id }, { $set: { password: passwordHash } });
 
   res.json({
     message: 'Password reset successfully',
     userNumber: student.userNumber,
     username: student.username,
-    temporaryPassword: newPassword, // returned once only
+    temporaryPassword: newPassword,
   });
 }
 
-// ─── POST /api/admin/students/:id/regenerate-routekey ────────────────────────
+// ─── POST /api/admin/students/:id/assign-set ─────────────────────────────────
 
-async function regenerateRouteKey(req, res) {
+async function assignStudentSet(req, res) {
+  const { setsKeyId } = req.body;
   const student = await Student.findById(req.params.id);
   if (!student) return res.status(404).json({ message: 'Student not found' });
 
-  const routeKey = await generateUniqueRouteKey();
-  await Student.updateOne({ _id: student._id }, { $set: { routeKey } });
+  const setDoc = await Sets.findById(setsKeyId);
+  if (!setDoc) return res.status(404).json({ message: 'Set not found' });
+
+  await Student.updateOne({ _id: student._id }, { $set: { setsKey: setDoc._id } });
 
   res.json({
-    message: 'Route key regenerated successfully',
-    userNumber: student.userNumber,
-    routeKey,
+    message: `Set ${setDoc.setsKey} assigned to #${student.userNumber}`,
+    setsKey: setDoc.setsKey,
   });
 }
 
@@ -207,7 +209,6 @@ async function deleteStudent(req, res) {
   const student = await Student.findById(req.params.id);
   if (!student) return res.status(404).json({ message: 'Student not found' });
 
-  // 1. Release map slot if assigned
   if (student.mapId) {
     await Map.findOneAndUpdate(
       { _id: student.mapId, assignedCount: { $gt: 0 } },
@@ -219,11 +220,8 @@ async function deleteStudent(req, res) {
     ).catch(() => {});
   }
 
-  // 2. Cascade delete progress & usage logs
   await Promise.all([
     UserQuestionProgress.deleteMany({ userId: student._id }).catch(() => {}),
-    HintUsageLog.deleteMany({ userId: student._id }).catch(() => {}),
-    BonusUsageLog.deleteMany({ userId: student._id }).catch(() => {}),
     Student.deleteOne({ _id: student._id }),
   ]);
 
@@ -241,6 +239,6 @@ module.exports = {
   getStudent,
   updateStatus,
   resetPassword,
-  regenerateRouteKey,
+  assignStudentSet,
   deleteStudent,
 };
