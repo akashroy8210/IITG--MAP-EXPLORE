@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const AdminUser = require('../models/AdminUser');
 const bcrypt = require('bcrypt');
+const setsKey=require('../models/Sets.model');
 const { loginLimiter, adminLoginLimiter } = require('../utils/rateLimiter');
 
 // ─── Student Login ─────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ async function studentLogin(req, res) {
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
   );
+  const setKeysArray=await setsKey.find({ _id: { $in: student.setsKey } }).populate('questions');
 
   res.json({
     token,
@@ -62,7 +64,7 @@ async function studentLogin(req, res) {
             mapNumber: student.mapId.mapNumber,
           }
         : null,
-      setsKey: student.setsKey,
+      setsKey: setKeysArray,
     },
   });
 }
