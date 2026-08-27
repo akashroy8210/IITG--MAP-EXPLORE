@@ -18,7 +18,7 @@ const app = express();
 const server = http.createServer(app);
 
 // const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
-const corsOrigin = ['http://localhost:5173','http://localhost:5174']
+const corsOrigin = process.env.CORS_ORIGIN
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
