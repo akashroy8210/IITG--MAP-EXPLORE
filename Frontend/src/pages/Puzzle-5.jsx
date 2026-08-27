@@ -23,6 +23,7 @@ function authHeaders() {
 const PUZZLE_ID = "puzzle-5";
 const ANSWER = "35";
 const REWARD_POINTS = 25;
+const GATE_CODE = "8156";
 
 
 const RANDOM_IMAGES = [MainGateBg, Banner, banner2, puzzleImage];

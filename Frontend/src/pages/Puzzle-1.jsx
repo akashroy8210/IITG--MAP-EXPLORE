@@ -171,7 +171,6 @@ export default function Puzzle1() {
       console.warn("Could not verify answer with server:", err);
     }
 
-
     setStatus("wrong");
     clearTimeout(wrongTimeout.current);
     wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);

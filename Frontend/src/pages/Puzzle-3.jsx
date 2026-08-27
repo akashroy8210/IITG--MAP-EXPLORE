@@ -17,7 +17,6 @@ function authHeaders() {
 }
 
 
-
 export default function Puzzle3() {
   const navigate = useNavigate();
 
