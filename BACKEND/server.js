@@ -32,7 +32,7 @@ app.use('/api', gameRoutes);                // GET /api/student/me, POST /api/ga
 app.use(notFound);
 app.use(errorHandler);
 
-const io = new Server(server, { cors: { origin: corsOrigin } });
+const io = new Server(server, { cors: { origin: "*" } });
 attachSocketServer(io);
 
 const PORT = process.env.PORT || 4000;
