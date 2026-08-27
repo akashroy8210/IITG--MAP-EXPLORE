@@ -25,8 +25,8 @@ export default function Puzzle3() {
   const [sequenceCode, setSequenceCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
-  const [nextCode, setNextCode] = useState(LOCATION_CODE);
   const [nextLocHint, setNextLocHint] = useState();
+  const [questId, setQuestId] = useState(null);
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
@@ -101,7 +101,6 @@ export default function Puzzle3() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
-    
       setVerifying(false);
     }
   }
@@ -114,13 +113,14 @@ export default function Puzzle3() {
 
     const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
     const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
-    console.log(questionss[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
     setNextLocHint(questionss[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
+    const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
+    setQuestId(questionId);
     try {
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
         { answer: answer.trim(),
-          questionId:"6a8d40ac727e88236a58d3ad"
+          questionId: questionId
          },
         { headers: authHeaders() }
       );
@@ -265,7 +265,7 @@ export default function Puzzle3() {
 
         <div className="puzzle-footer">
           <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
+            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
           </div>
           <div className="hint-box">
             <span>💡</span>
@@ -293,7 +293,7 @@ export default function Puzzle3() {
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <p>Correct! {ANSWER_DISPLAY} was seated in Seat 3.</p>
-            <p className="points-earned">+{REWARD_POINTS} POINTS</p>
+            <p className="points-earned">+{10} POINTS</p>
 
             <div className="next-hint-box">
               <span>🏛️</span>

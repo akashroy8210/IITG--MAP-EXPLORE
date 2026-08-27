@@ -9,6 +9,29 @@ import Puzzle4 from './pages/Puzzle-4';
 import Puzzle5 from './pages/Puzzle-5';
 import './App.css';
 import Maingate from './pages/Maingate';
+// Admin imports
+import './admin/admin.css';
+import { AuthProvider } from './admin/auth/AuthContext';
+import ProtectedRoute from './admin/auth/ProtectedRoute';
+import ToastContainer from './admin/components/Toast';
+import LoginPage from './admin/pages/LoginPage';
+import DashboardPage from './admin/pages/DashboardPage';
+import QuestionsPage from './admin/pages/questions/QuestionsPage';
+import CreateQuestionPage from './admin/pages/questions/CreateQuestionPage';
+import BulkUploadQuestionsPage from './admin/pages/questions/BulkUploadQuestionsPage';
+import SetsPage from './admin/pages/sets/SetsPage';
+import GenerateSetsPage from './admin/pages/sets/GenerateSetsPage';
+import StudentsPage from './admin/pages/students/StudentsPage';
+import CreateStudentPage from './admin/pages/students/CreateStudentPage';
+import BulkCreatePage from './admin/pages/students/BulkCreatePage';
+import StudentDetailPage from './admin/pages/students/StudentDetailPage';
+import MapsPage from './admin/pages/maps/MapsPage';
+import CreateMapPage from './admin/pages/maps/CreateMapPage';
+import RouteKeysPage from './admin/pages/routes/RouteKeysPage';
+import MembersPage from './admin/pages/members/MembersPage';
+import AddMemberPage from './admin/pages/members/AddMemberPage';
+import SettingsPage from './admin/pages/settings/SettingsPage';
+
 function App() {
 
 

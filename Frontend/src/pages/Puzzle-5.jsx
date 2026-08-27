@@ -19,12 +19,6 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// ---- Puzzle configuration ----
-const PUZZLE_ID = "puzzle-5";
-const ANSWER = "35";
-const REWARD_POINTS = 25;
-const GATE_CODE = "8156";
-
 
 const RANDOM_IMAGES = [MainGateBg, Banner, banner2, puzzleImage];
 
@@ -37,6 +31,7 @@ export default function Puzzle5() {
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [gateCode, setGateCode] = useState();
+  const [questId, setQuestId] = useState(null);
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | image | checking
@@ -86,7 +81,7 @@ export default function Puzzle5() {
       const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
       console.log("student_sets_key:", res1);
       const prevQuestionId = res1[0].questions[3]._id;
-      console.log("prevQuestionId:", prevQuestionId);
+      
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
@@ -116,14 +111,18 @@ export default function Puzzle5() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (status !== "playing" || !answer.trim()) return;
-
+    
+    const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
+    const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
+    const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
+    setQuestId(questionId);
     setStatus("checking");
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
         { answer: answer.trim(),
-          questionId:"6a8d41bf727e88236a58d3b0",
+          questionId: questionId,
          },
         { headers: authHeaders() }
       );

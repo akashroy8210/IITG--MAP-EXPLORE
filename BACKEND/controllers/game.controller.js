@@ -106,6 +106,7 @@ async function startGame(req, res) {
 async function submitAnswer(req, res) {
   const { questionId, answer } = req.body;
   console.log("hi-1")
+  console.log(questionId, answer);
   if (!questionId || answer === undefined) {
     return res.status(400).json({ message: 'questionId and answer are required' });
   }
@@ -139,7 +140,7 @@ async function submitAnswer(req, res) {
   if (!userVerificationCode && !question.isFinalPuzzle) {
     userVerificationCode = generateNumericCode();
   }
-
+  console.log(student);
   const result = await UserQuestionProgress.findOneAndUpdate(
     { userId: student._id, questionId, status: 'unsolved' },
     {

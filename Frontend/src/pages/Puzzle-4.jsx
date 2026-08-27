@@ -16,10 +16,7 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// ---- Puzzle configuration ----
-const PUZZLE_ID = "puzzle-4";
-const ANSWER = "7423";
-const REWARD_POINTS = 15;
+
 
 export default function Puzzle4() {
   const navigate = useNavigate();
@@ -31,6 +28,7 @@ export default function Puzzle4() {
   const [verifyError, setVerifyError] = useState("");
   const [nextCode, setNextCode] = useState("");
   const [nextLocHint, setNextLocHint] = useState();
+  const [questId, setQuestId] = useState(null);
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
@@ -116,12 +114,13 @@ export default function Puzzle4() {
     
     const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
     const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
+    const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
     setNextLocHint(questionss[0].questions[res1.data.game.currentStageIndex].nextLocationHint);
     try {
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
         { answer: answer.trim(),
-          questionId:"6a8d40ac727e88236a58d3ae"
+          questionId: questionId
          },
         { headers: authHeaders() }
       );
@@ -132,6 +131,7 @@ export default function Puzzle4() {
           res.data?.verificationCode ||
           res.data?.sequenceCode ||
           res.data?.locationCode;
+          console.log("codeFromBackend", codeFromBackend);
         if (codeFromBackend) {
           setNextCode(codeFromBackend);
         }
@@ -255,7 +255,7 @@ export default function Puzzle4() {
 
         <div className="puzzle-footer">
           <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
+            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
           </div>
           <div className="hint-box">
             <span>💡</span>

@@ -144,17 +144,20 @@ export default function Puzzle1() {
     if (!allCollected || status !== "playing" || !answer.trim()) return;
 
     const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
-    const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
-    console.log("student_sets_key:", questionss);
-    console.log(questionss[0].questions[1].nextLocationHint);
-    setNextLocHint(questionss[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
+    const questions = JSON.parse(localStorage.getItem("student_sets_key"))
+
+    console.log("student_sets_key:", questions);
+    console.log(questions[0].questions[1].nextLocationHint);
+    setNextLocHint(questions[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
+    
+    const questionId = questions[0].questions[res1.data.game.currentStageIndex]._id;
     setStatus("checking");
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
         { answer: answer.trim(),
-          questionId: questId,
+          questionId: questionId,
          },
         { headers: authHeaders() }
       );
