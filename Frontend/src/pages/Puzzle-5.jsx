@@ -1,33 +1,44 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../style/Puzzle5.css";
 import MainGateBg from "../assets/MainGateBg.png";
 import Banner from "../assets/Banner.png";
 import banner2 from "../assets/banner2.png";
 import puzzleImage from "../assets/puzzle-telescope.svg";
 
+// =========================================================================
+// BACKEND URL CONFIGURATION
+// Enter your backend API base URL or verification endpoint here:
+// =========================================================================
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const VERIFY_CODE_ENDPOINT = `${API_BASE_URL}/game/verify-code`; // <<< ENTER YOUR BACKEND URL HERE
+
+function authHeaders() {
+  const token = localStorage.getItem("student_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // ---- Puzzle configuration ----
 const PUZZLE_ID = "puzzle-5";
 const ANSWER = "35";
 const REWARD_POINTS = 25;
+
 
 const RANDOM_IMAGES = [MainGateBg, Banner, banner2, puzzleImage];
 
 export default function Puzzle5() {
   const navigate = useNavigate();
 
-  const student = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('student_user') || '{}');
-    } catch {
-      return {};
-    }
-  })();
-
-  const userGateCode = student?.mainGateCode || "GATE-8156";
+  // Sequence code verification state
+  const [isVerified, setIsVerified] = useState(false);
+  const [sequenceCode, setSequenceCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [gateCode, setGateCode] = useState();
 
   const [answer, setAnswer] = useState("");
-  const [status, setStatus] = useState("playing"); // playing | correct | wrong | image
+  const [status, setStatus] = useState("playing"); // playing | correct | wrong | image | checking
   const [flipped, setFlipped] = useState(false);
   const wrongTimeout = useRef(null);
 
@@ -35,17 +46,99 @@ export default function Puzzle5() {
     () => RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)]
   );
 
-  function handleSubmit(e) {
+  // Check from backend whether the puzzle has already been completed on load
+  useEffect(() => {
+    let cancelled = false;
+    setGateCode(JSON.parse(localStorage.getItem("student_sets_key"))?.data?.game?.mainGateCode || "");
+    async function checkCompletionStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+          { headers: authHeaders() }
+        );
+
+        if (cancelled) return;
+
+        if (res.data?.completed || res.data?.isCompleted) {
+          setIsVerified(true);
+          setStatus("image");
+        }
+      } catch (err) {
+        console.warn("Could not check puzzle completion status with server:", err);
+      }
+    }
+
+    checkCompletionStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleVerifyCode(e) {
+    e.preventDefault();
+    if (!sequenceCode.trim() || verifying) return;
+
+    setVerifying(true);
+    setVerifyError("");
+
+    try {
+      const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
+      console.log("student_sets_key:", res1);
+      const prevQuestionId = res1[0].questions[3]._id;
+      console.log("prevQuestionId:", prevQuestionId);
+      const res = await axios.post(
+        VERIFY_CODE_ENDPOINT,
+        {
+          questionId:prevQuestionId,
+          code: sequenceCode.trim(),
+        },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.correct || res.data?.verified) {
+        setIsVerified(true);
+      } else {
+        setVerifyError(
+          res.data?.message || "Invalid verification code. Please try again."
+        );
+      }
+    } catch (err) {
+      console.warn("Backend sequence verification failed:", err);
+      setVerifyError(
+        err.response?.data?.message || "Failed to verify code with backend. Please try again."
+      );
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     if (status !== "playing" || !answer.trim()) return;
 
-    if (answer.trim().toLowerCase() === ANSWER) {
-      setStatus("correct");
-    } else {
-      setStatus("wrong");
-      clearTimeout(wrongTimeout.current);
-      wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
+    setStatus("checking");
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/game/answer`,
+        { answer: answer.trim(),
+          questionId:"6a8d41bf727e88236a58d3b0",
+         },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.correct || res.data?.success) {
+        setStatus("correct");
+        setGateCode(res.data.mainGateCode);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not verify answer with server:", err);
     }
+
+    setStatus("wrong");
+    clearTimeout(wrongTimeout.current);
+    wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
   }
 
   return (
@@ -56,15 +149,59 @@ export default function Puzzle5() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        <div className="puzzle-header">
-          <div>
-            <h1>◆ PUZZLE CHALLENGE ◆</h1>
-            <p>
-              You found the room inside the New SAC. Chalked on the wall
-              is a single equation, waiting to be solved.
-            </p>
-          </div>
-        </div>
+        {!isVerified ? (
+          /* =========================================
+             1. SEQUENCE CODE VERIFICATION SCREEN
+             ========================================= */
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>◆ ACCESS VERIFICATION ◆</h1>
+                <p>
+                  Enter the verification code to unlock this puzzle.
+                </p>
+              </div>
+            </div>
+
+            <form className="answer-section" onSubmit={handleVerifyCode}>
+              <p className="answer-label">Enter Verification Code:</p>
+              <div className="answer-row">
+                <input
+                  type="text"
+                  placeholder="Enter code..."
+                  value={sequenceCode}
+                  disabled={verifying}
+                  onChange={(e) => setSequenceCode(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={verifying || !sequenceCode.trim()}
+                >
+                  {verifying ? "VERIFYING..." : "VERIFY CODE"}
+                </button>
+              </div>
+              {verifyError && (
+                <p className="answer-error">{verifyError}</p>
+              )}
+            </form>
+
+  
+          </>
+        ) : (
+          /* =========================================
+             2. ACTUAL PUZZLE CONTENT
+             ========================================= */
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>◆ PUZZLE CHALLENGE ◆</h1>
+                <p>
+                  You found the room inside the New SAC. Chalked on the wall
+                  is a single equation, waiting to be solved.
+                </p>
+              </div>
+            </div>
 
         <div className="question-box">
           <span className="question-label">QUESTION</span>
@@ -88,7 +225,7 @@ export default function Puzzle5() {
               className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
               disabled={status !== "playing"}
             >
-              SUBMIT ANSWER
+              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
             </button>
           </div>
           {status === "wrong" && (
@@ -116,6 +253,8 @@ export default function Puzzle5() {
         <div className="puzzle-tip">
           💡 TIP: Not every clue on this campus is written in words.
         </div>
+          </>
+        )}
       </div>
 
       {status === "correct" && (
@@ -152,17 +291,17 @@ export default function Puzzle5() {
                   <img src={cardImage} alt="A photograph left on the desk" />
                 </div>
                 <div className="flip-card-back">
-                  <span className="code-label">PERSONAL MAIN GATE CODE</span>
-                  <span className="code-value">{userGateCode}</span>
+                  <span className="code-label">MAIN GATE CODE</span>
+                  <span className="code-value">{gateCode}</span>
                   <span className="code-note">
-                    Enter this unique code at the Main Gate to finish!
+                    Enter this at the Main Gate.
                   </span>
                 </div>
               </div>
             </div>
 
-            <button onClick={() => navigate("/Instructions")}>
-              CONTINUE →
+            <button className="close-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
             </button>
           </div>
         </div>

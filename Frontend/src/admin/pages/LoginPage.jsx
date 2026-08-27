@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import NeoButton from '../components/NeoButton';
 import NeoInput from '../components/NeoInput';
+import '../admin.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

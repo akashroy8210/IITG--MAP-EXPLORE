@@ -1,12 +1,17 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import "../style/Puzzle1.css";
 import MainGateBg from "../assets/MainGateBg.png";
 import puzzleImage from "../assets/puzzle-telescope.svg";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 // ---- Puzzle configuration (swap per-location for future Puzzle-2, Puzzle-3 ...) ----
 const PUZZLE_ID = "puzzle-1";
-const ANSWER = "telescope";
+// Verification happens server-side (see handleSubmit) — this is only used
+// to name the object in the "quest complete" message.
+// const ANSWER = "telescope";
 const REWARD_POINTS = 10;
 
 
@@ -32,14 +37,22 @@ function loadProgress() {
   return PIECES.map(() => false);
 }
 
+function authHeaders() {
+  const token = localStorage.getItem("student_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 
 export default function Puzzle1() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const [nextLocHint, setNextLocHint] = useState("");
   const [collected, setCollected] = useState(loadProgress);
+  const [currQuestion , setCurrQuestion] = useState();
+  const [questId, setQuestId] = useState();
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | timeup
+  const [code,setCode] = useState(0);
   
   const [toast, setToast] = useState(null);
   const wrongTimeout = useRef(null);
@@ -47,6 +60,40 @@ export default function Puzzle1() {
 
   const allCollected = collected.every(Boolean);
   const foundCount = collected.filter(Boolean).length;
+
+  // Pull the authoritative collected-pieces list from the backend on load,
+  // so pieces collected earlier (at another location, or another session)
+  // still show up as found and render their image here.
+  useEffect( () => {
+    let cancelled = false;
+
+    // async function fetchProgress() {
+    //   try {
+    //     const res = await axios.get(
+    //       `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/progress`,
+    //       { headers: authHeaders() }
+    //     );
+    //     const collectedPieceIds = res.data?.collectedPieceIds || [];
+    //     if (cancelled || !Array.isArray(collectedPieceIds)) return;
+
+    //     setCollected((prev) => {
+    //       const next = PIECES.map(
+    //         (p) => prev[p.id] || collectedPieceIds.includes(p.id)
+    //       );
+    //       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    //       return next;
+    //     });
+    //   } catch (err) {
+    //     // Backend not available yet — keep using whatever is in localStorage.
+    //     console.warn("Could not fetch puzzle progress from server:", err);
+    //   }
+    // }
+
+    //fetchProgress();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // A location in the game map hands this page a piece by linking to
   // /puzzle-1?collect=<pieceId>. The COLLECT button only shows for the
@@ -76,19 +123,58 @@ export default function Puzzle1() {
     setToast(`Piece found at ${PIECES[pieceId].location}!`);
     window.clearTimeout(collectPiece._t);
     collectPiece._t = window.setTimeout(() => setToast(null), 3000);
+
+    // Persist the collected piece server-side so it's remembered across
+    // locations/sessions. UI already updated above — this just syncs it.
+    // axios
+    //   .post(
+    //     `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/collect`,
+    //     { pieceId },
+    //     { headers: authHeaders() }
+    //   )
+    //   .catch((err) => {
+    //     console.warn("Could not save collected piece to server:", err);
+    //   });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
+    
     e.preventDefault();
+
     if (!allCollected || status !== "playing" || !answer.trim()) return;
 
-    if (answer.trim().toLowerCase() === ANSWER) {
-      setStatus("correct");
-    } else {
-      setStatus("wrong");
-      clearTimeout(wrongTimeout.current);
-      wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
+    const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
+    const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
+    console.log("student_sets_key:", questionss);
+    console.log(questionss[0].questions[1].nextLocationHint);
+    setNextLocHint(questionss[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
+    setStatus("checking");
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/game/answer`,
+        { answer: answer.trim(),
+          questionId: questId,
+         },
+        { headers: authHeaders() }
+      );
+
+      if (res.data?.correct) {
+        setCode(res.data.verificationCode);
+        setStatus("correct");
+        localStorage.removeItem(STORAGE_KEY);
+            const res2 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
+            console.log(res2.data);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not verify answer with server:", err);
     }
+
+
+    setStatus("wrong");
+    clearTimeout(wrongTimeout.current);
+    wrongTimeout.current = setTimeout(() => setStatus("playing"), 1200);
   }
 
 
@@ -99,7 +185,14 @@ export default function Puzzle1() {
       <img src={MainGateBg} alt="" className="puzzle-bg" />
       <div className="puzzle-overlay" />
 
-      {toast && <div className="piece-toast">✦ {toast}</div>}
+      {toast && (
+        <div className="piece-toast">
+          <p>✦ {toast}</p>
+          <button className="close-btn" onClick={() => window.close()}>
+            Click here to continue with the game
+          </button>
+        </div>
+      )}
 
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
@@ -108,11 +201,10 @@ export default function Puzzle1() {
           <div>
             <h1>◆ PUZZLE CHALLENGE ◆</h1>
             <p>
-              Find all 4 parts of the image. Once you have them all, guess
-              the name of the object!
+              {currQuestion?.Question}
             </p>
           </div>
-          
+  
         </div>
 
         <div className="puzzle-grid-wrap">
@@ -200,14 +292,14 @@ export default function Puzzle1() {
               className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
               disabled={!allCollected || status !== "playing"}
             >
-              SUBMIT ANSWER
+              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
             </button>
           </div>
           {status === "wrong" && (
             <p className="answer-error">Not quite. Try again!</p>
           )}
-        </form>
 
+        </form>
         <div className="puzzle-footer">
           <div className="reward-badge">
             <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
@@ -231,9 +323,6 @@ export default function Puzzle1() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => navigate("/Instructions")}>
-          ← BACK TO MAP
-        </button>
 
         <div className="puzzle-tip">
           💡 TIP: Explore every corner of the campus. Every location has a
@@ -245,19 +334,21 @@ export default function Puzzle1() {
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
-            <p>You correctly identified the {ANSWER}!</p>
+            <p>You correctly identified the Answer!</p>
             <p className="points-earned">+{REWARD_POINTS} POINTS</p>
             <div className="next-hint-box">
               <span>💡</span>
               <p>
-                Professor X has something important to tell you. He needs
-                your help to solve a problem. Head to the Physics Department
-                in Core 4 and find what Professor X has left for you.
+                {nextLocHint}
+                Enter this code at the next Location: {code}
               </p>
             </div>
-            <button onClick={() => navigate("/Instructions")}>
-              CONTINUE →
-            </button>
+            <div className="result-actions">
+              <button className="close-btn" onClick={() => window.close()}>
+                Click here to continue with the game
+              </button>
+            </div>
+
           </div>
         </div>
       )}

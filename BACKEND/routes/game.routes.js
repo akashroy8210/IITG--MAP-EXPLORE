@@ -17,7 +17,6 @@ router.get('/student/me', studentAuth, getMe);
 router.get('/game/state', studentAuth, getMe);
 router.post('/game/start', studentAuth, startGame);
 router.post('/game/answer', studentAuth, submitAnswer);
-router.post('/game/submit-answer', studentAuth, submitAnswer);
 router.post('/game/verify-code', studentAuth, verifyCode);
 router.post('/game/verify-location', studentAuth, verifyCode);
 router.post('/game/hint', studentAuth, useHint);

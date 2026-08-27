@@ -472,7 +472,12 @@
   transform: translateX(-50%);
   z-index: 20;
 
-  padding: 12px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px 22px;
   border-radius: 8px;
 
   background: linear-gradient(135deg, #3f7a3f, #2c5a2c);
@@ -484,6 +489,20 @@
   letter-spacing: 0.5px;
 
   animation: toastIn 0.3s ease-out;
+}
+
+.piece-toast p {
+  margin: 0;
+  text-align: center;
+}
+
+.piece-toast .close-btn {
+  border-color: #eafbe6;
+  color: #eafbe6;
+}
+
+.piece-toast .close-btn:hover {
+  background: rgba(234, 251, 230, 0.15);
 }
 
 @keyframes toastIn {
@@ -560,6 +579,24 @@
 
 .result-card button:hover {
   transform: translateY(-2px);
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.result-card button.close-btn {
+  background: transparent;
+  border: 1px solid #9b6a32;
+  color: #6b3f1d;
+}
+
+.result-card button.close-btn:hover {
+  background: rgba(120, 75, 30, 0.12);
 }
 
 .next-hint-box {

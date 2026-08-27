@@ -467,6 +467,24 @@
   transform: translateY(-2px);
 }
 
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.result-card button.close-btn {
+  background: transparent;
+  border: 1px solid #9b6a32;
+  color: #6b3f1d;
+}
+
+.result-card button.close-btn:hover {
+  background: rgba(120, 75, 30, 0.12);
+}
+
 .next-hint-box {
   display: flex;
   gap: 8px;

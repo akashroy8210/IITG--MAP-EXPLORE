@@ -55,6 +55,7 @@ async function studentLogin(req, res) {
       name: student.name,
       email: student.email,
       status: student.status,
+      mainGateCode:student.mainGateCode,
       gameStatus: student.gameStatus,
       map: student.mapId
         ? {

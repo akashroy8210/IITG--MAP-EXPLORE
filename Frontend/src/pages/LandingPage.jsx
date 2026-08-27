@@ -1,6 +1,5 @@
 import '../style/LandingPage.css';
 import MainGateBg from "../assets/MainGateBg.png";
-import Banner from '../assets/Banner.png';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -35,7 +34,15 @@ export default function LandingPage() {
 
             if (response.data && response.data.token) {
                 localStorage.setItem("student_token", response.data.token);
+                console.log(
+    "TOKEN AFTER LOGIN:",
+    localStorage.getItem("student_token")
+);
                 localStorage.setItem("student_user", JSON.stringify(response.data.student));
+                if (response.data.student?.setsKey) {
+                    localStorage.setItem("student_sets_key", JSON.stringify(response.data.student.setsKey));
+                }
+                console.log(response);
                 navigate("/Instructions");
             } else {
                 setError("Login failed. No token received.");
@@ -53,87 +60,126 @@ export default function LandingPage() {
     };
 
     return (
-        <>
-            <div className="landing-page">
-                {/* Campus gate background */}
-                <img
-                    src={MainGateBg}
-                    alt="IIT Guwahati Gate"
-                    className="gate-bg"
-                />
+        <div className="landing-page">
+            {/* Campus gate background */}
+            <img
+                src={MainGateBg}
+                alt="IIT Guwahati Gate"
+                className="gate-bg"
+            />
 
-                {/* Quest banner */}
-                <img
-                    src={Banner}
-                    alt="The IITG Quest"
-                    className="quest-banner"
-                />
+            {/* Dark Cinematic Vignette */}
+            <div className="vignette-overlay" />
 
-                {/* Login Card */}
-                <div className="login-card">
-                    <div className="login-heading">
-                        BEGIN YOUR QUEST
-                    </div>
-
-                    <div className="login-divider">
-                        <span>✦</span>
-                    </div>
-
-                    <p className="login-description">
-                        Enter your credentials to enter the adventure
-                    </p>
-
-                    <form onSubmit={handleLogin}>
-                        {/* Username */}
-                        <div className="input-wrapper">
-                            <span className="input-icon">♙</span>
-                            <input
-                                type="text"
-                                placeholder="ENTER USERNAME (e.g. user100001)"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                autoComplete="username"
-                            />
-                        </div>
-
-                        {/* Game Code / Password */}
-                        <div className="input-wrapper">
-                            <span className="input-icon">🔑</span>
-                            <input
-                                type="password"
-                                placeholder="ENTER PASSWORD / GAME CODE"
-                                value={gameCode}
-                                onChange={(e) => setGameCode(e.target.value)}
-                                autoComplete="current-password"
-                            />
-                        </div>
-
-                        {/* Button */}
-                        <button className="start-button" type="submit" disabled={loading}>
-                            {loading ? "CHECKING..." : "ENTER THE QUEST "}
-                            <span> →</span>
-                        </button>
-                    </form>
-
-                    <p className="organizer-text">
-                        Credentials provided by the administrators
-                    </p>
-                </div>
+            {/* Subtle Floating Embers / Golden Particles */}
+            <div className="ember-particles" aria-hidden="true">
+                <div className="ember ember-1"></div>
+                <div className="ember ember-2"></div>
+                <div className="ember ember-3"></div>
+                <div className="ember ember-4"></div>
+                <div className="ember ember-5"></div>
+                <div className="ember ember-6"></div>
+                <div className="ember ember-7"></div>
+                <div className="ember ember-8"></div>
             </div>
 
-            {error && (
-                <div className="quest-error">
-                    <div className="error-icon">⚠</div>
-                    <div className="error-content">
-                        <div className="error-title">
-                            QUEST DENIED
+            {/* HUD Corner Elements */}
+            <div className="hud-element hud-top-left">
+                <div className="hud-label">IITG QUEST</div>
+                <div className="hud-value">MISSION 01</div>
+            </div>
+
+            <div className="hud-element hud-top-right">
+                <span className="online-pulse"></span>
+                <span className="hud-value">PLAYERS ONLINE: 00</span>
+            </div>
+
+            <div className="hud-element hud-bottom-left">
+                <div className="hud-value">ADVENTURE MODE</div>
+            </div>
+
+            <div className="hud-element hud-bottom-right">
+                <div className="hud-value">v1.0 • IIT GUWAHATI</div>
+            </div>
+
+            {/* Main Center Content Container */}
+            <div className="quest-container">
+                {/* Prominent Game Header Logo */}
+                <header className="game-header">
+                    <h1 className="game-title">THE IITG QUEST</h1>
+                    <div className="game-subtitle-row">
+                        <span className="sub-line"></span>
+                        <p className="game-subtitle">RACE • SOLVE • DISCOVER</p>
+                        <span className="sub-line"></span>
+                    </div>
+                    <p className="game-tagline">A CAMPUS ADVENTURE</p>
+                </header>
+
+                {/* Centered Ornate RPG Quest Panel */}
+                <main className="login-card">
+                    {/* Ornamental Corners */}
+                    <div className="corner-ornament top-left">✦</div>
+                    <div className="corner-ornament top-right">✦</div>
+                    <div className="corner-ornament bottom-left">✦</div>
+                    <div className="corner-ornament bottom-right">✦</div>
+
+                    <h2 className="login-heading">⚔ BEGIN YOUR QUEST ⚔</h2>
+
+                    <div className="login-divider">
+                        <span>❖</span>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="quest-form">
+                        {/* Field 1: PLAYER NAME */}
+                        <div className="input-group">
+                            <label className="input-label">PLAYER NAME</label>
+                            <div className="input-wrapper">
+                                <span className="input-icon">🛡️</span>
+                                <input
+                                    type="text"
+                                    placeholder="Enter your username..."
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    autoComplete="username"
+                                />
+                            </div>
                         </div>
-                        <div className="error-message">
-                            {error}
+
+                        {/* Field 2: QUEST CODE */}
+                        <div className="input-group">
+                            <label className="input-label">QUEST CODE</label>
+                            <div className="input-wrapper">
+                                <span className="input-icon">🗝️</span>
+                                <input
+                                    type="password"
+                                    placeholder="Enter game code..."
+                                    value={gameCode}
+                                    onChange={(e) => setGameCode(e.target.value)}
+                                    autoComplete="current-password"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Primary Button */}
+                        <button className="start-button" type="submit" disabled={loading}>
+                            <span className="button-text">
+                                {loading ? "CHECKING..." : "⚔ START ADVENTURE"}
+                            </span>
+                        </button>
+                    </form>
+                </main>
+
+                {/* Quest Denied Error Message */}
+                {error && (
+                    <div className="quest-error" role="alert">
+                        <div className="error-icon">⚠</div>
+                        <div className="error-content">
+                            <div className="error-title">QUEST DENIED</div>
+                            <div className="error-message">{error}</div>
                         </div>
                     </div>
-                </div>
-            )}
-        </>
+                )}
+            </div>
+        </div>
     );
 }
