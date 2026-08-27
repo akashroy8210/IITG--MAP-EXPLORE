@@ -18,8 +18,7 @@ const app = express();
 const server = http.createServer(app);
 
 // const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
-const corsOrigin = process.env.CORS_ORIGIN
-app.use(cors({ origin: corsOrigin }));
+app.use(cors({origin: "*"}))
 app.use(express.json());
 
 // Health check
