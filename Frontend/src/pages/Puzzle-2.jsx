@@ -107,6 +107,7 @@ export default function Puzzle2() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
+
       setVerifying(false);
     }
   }

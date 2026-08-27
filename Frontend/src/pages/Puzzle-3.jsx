@@ -27,46 +27,47 @@ export default function Puzzle3() {
   const [verifyError, setVerifyError] = useState("");
   const [nextLocHint, setNextLocHint] = useState();
   const [questId, setQuestId] = useState(null);
+  const [nextCode, setNextCode] = useState(null);
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
   const wrongTimeout = useRef(null);
 
   // Check from backend whether the puzzle has already been completed on load
-  useEffect(() => {
-    let cancelled = false;
+  // useEffect(() => {
+  //   let cancelled = false;
 
-    async function checkCompletionStatus() {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
-          { headers: authHeaders() }
-        );
+  //   async function checkCompletionStatus() {
+  //     try {
+  //       const res = await axios.get(
+  //         `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+  //         { headers: authHeaders() }
+  //       );
 
-        if (cancelled) return;
+  //       if (cancelled) return;
 
-        if (res.data?.completed || res.data?.isCompleted) {
-          setIsVerified(true);
-          const codeFromBackend =
-            res.data?.nextCode ||
-            res.data?.code ||
-            res.data?.sequenceCode ||
-            res.data?.locationCode;
-          if (codeFromBackend) {
-            setNextCode(codeFromBackend);
-          }
-          setStatus("completed");
-        }
-      } catch (err) {
-        console.warn("Could not check puzzle completion status with server:", err);
-      }
-    }
+  //       if (res.data?.completed || res.data?.isCompleted) {
+  //         setIsVerified(true);
+  //         const codeFromBackend =
+  //           res.data?.nextCode ||
+  //           res.data?.code ||
+  //           res.data?.sequenceCode ||
+  //           res.data?.locationCode;
+  //         if (codeFromBackend) {
+  //           setNextCode(codeFromBackend);
+  //         }
+  //         setStatus("completed");
+  //       }
+  //     } catch (err) {
+  //       console.warn("Could not check puzzle completion status with server:", err);
+  //     }
+  //   }
 
-    checkCompletionStatus();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  //   checkCompletionStatus();
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, []);
 
   async function handleVerifyCode(e) {
     e.preventDefault();
@@ -101,6 +102,7 @@ export default function Puzzle3() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
+      setIsVerified(true);
       setVerifying(false);
     }
   }
@@ -117,6 +119,7 @@ export default function Puzzle3() {
     const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
     setQuestId(questionId);
     try {
+      
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
         { answer: answer.trim(),
@@ -124,7 +127,7 @@ export default function Puzzle3() {
          },
         { headers: authHeaders() }
       );
-
+      console.log("Answer submission response:", res.data);
       if (res.data?.correct || res.data?.success) {
         const codeFromBackend =
           res.data?.nextCode ||
@@ -292,7 +295,7 @@ export default function Puzzle3() {
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
-            <p>Correct! {ANSWER_DISPLAY} was seated in Seat 3.</p>
+            <p>Correct! { 10} was seated in Seat 3.</p>
             <p className="points-earned">+{10} POINTS</p>
 
             <div className="next-hint-box">

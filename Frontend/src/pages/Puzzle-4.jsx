@@ -283,7 +283,7 @@ export default function Puzzle4() {
           <div className="result-card">
             <h2>✦ DOOR UNLOCKED ✦</h2>
             <p>The keypad blinks green. You're in.</p>
-            <p className="points-earned">+{REWARD_POINTS} POINTS</p>
+            <p className="points-earned">+{10} POINTS</p>
 
             <div className="next-hint-box">
               <span>📚</span>

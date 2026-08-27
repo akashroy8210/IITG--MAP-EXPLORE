@@ -48,7 +48,7 @@ function App() {
           <Route path="/puzzle-3" element={<Puzzle3 />} />
           <Route path="/puzzle-4" element={<Puzzle4 />} />
           <Route path="/puzzle-5" element={<Puzzle5 />} />
-
+          <Route path="/maingate" element={<Maingate />} />
           {/* ── Admin Panel Routes ── */}
           <Route path="/admin/login" element={<LoginPage />} />
           <Route

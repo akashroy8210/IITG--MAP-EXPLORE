@@ -105,7 +105,7 @@ export default function Maingate() {
       const timeVal = res.data?.completionTimeSeconds || res.data?.completedAt || res.data?.timestamp;
 
       if (isCorrect) {
-        const time = new Date(totalSeconds * 1000).toISOString().substring(11, 19);
+        const time = new Date(timeVal * 1000).toISOString().substring(11, 19);
         console.log("Completion time (HH:MM:SS):", time);
         setCompletedAt(time);
         setStatus("success");
