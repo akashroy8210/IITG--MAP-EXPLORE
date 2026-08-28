@@ -8,6 +8,7 @@ const {
   useHint,
   finalAnswer,
   mainGateCode,
+  getPuzzleStatus,
 } = require('../controllers/game.controller');
 
 const router = express.Router();
@@ -24,5 +25,5 @@ router.post('/game/use-hint', studentAuth, useHint);
 router.post('/game/final-answer', studentAuth, finalAnswer);
 router.post('/game/maingate-code', studentAuth, mainGateCode);
 router.post('/game/main-gate', studentAuth, mainGateCode);
-
+router.get('/student/puzzles/:questionId/status', studentAuth, getPuzzleStatus);
 module.exports = router;

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../style/Puzzle3.css";
 import MainGateBg from "../assets/MainGateBg.png";
+import { QUESTION_IDS } from "../constants/questionIds";
 
 // =========================================================================
 // BACKEND URL CONFIGURATION
@@ -10,6 +11,9 @@ import MainGateBg from "../assets/MainGateBg.png";
 // =========================================================================
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 const VERIFY_CODE_ENDPOINT = `${API_BASE_URL}/game/verify-code`; // <<< ENTER YOUR BACKEND URL HERE
+
+// ---- Puzzle configuration ----
+const PUZZLE_ID = QUESTION_IDS.PUZZLE_3;
 
 function authHeaders() {
   const token = localStorage.getItem("student_token");
@@ -31,7 +35,45 @@ export default function Puzzle3() {
 
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
+  const [alreadySolvedCode, setAlreadySolvedCode] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const wrongTimeout = useRef(null);
+
+  // Redirect to login if the student isn't authenticated.
+  useEffect(() => {
+    if (!localStorage.getItem("student_token")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // If this puzzle's question was already solved earlier (or in a previous
+  // session), show the student their verification code again in case they
+  // forgot to write it down before moving to the next location.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+          { headers: authHeaders() }
+        );
+        if (cancelled) return;
+        if (res.data?.completed || res.data?.isCompleted) {
+          setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
+        }
+      } catch (err) {
+        console.warn("Could not check puzzle status with server:", err);
+      } finally {
+        if (!cancelled) setCheckingStatus(false);
+      }
+    }
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Check from backend whether the puzzle has already been completed on load
   // useEffect(() => {
@@ -79,12 +121,15 @@ export default function Puzzle3() {
     try {
       const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
       const prevQuestionId = res1.data.game.currentQuestion.id;
-     
+      const currentIdx = res1.data.game.currentStageIndex;
+      const nextIdx = currentIdx + 1;
+      const nextQuestionId = JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
           questionId: prevQuestionId,
           code: sequenceCode.trim(),
+          nextQuestionId: PUZZLE_ID, // nextQuestionId
         },
         { headers: authHeaders() }
       );
@@ -102,7 +147,6 @@ export default function Puzzle3() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
-      setIsVerified(true);
       setVerifying(false);
     }
   }
@@ -157,7 +201,35 @@ export default function Puzzle3() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        {!isVerified ? (
+        {checkingStatus ? (
+          <div className="puzzle-header">
+            <div>
+              <h1>◆ LOADING ◆</h1>
+              <p>Checking puzzle status...</p>
+            </div>
+          </div>
+        ) : alreadySolvedCode ? (
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>✦ PUZZLE COMPLETED ✦</h1>
+                <p>You've already solved this puzzle.</p>
+              </div>
+            </div>
+
+            <div className="code-display">
+              <span className="code-label">YOUR VERIFICATION CODE</span>
+              <span className="code-value">{alreadySolvedCode}</span>
+              <span className="code-note">
+                Enter this code at the next location puzzle page.
+              </span>
+            </div>
+
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
+          </>
+        ) : !isVerified ? (
           /* =========================================
              1. SEQUENCE CODE VERIFICATION SCREEN
              ========================================= */
@@ -194,8 +266,8 @@ export default function Puzzle3() {
               )}
             </form>
 
-            <button className="back-btn" onClick={() => navigate("/Instructions")}>
-              ← BACK TO MAP
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
             </button>
           </>
         ) : (
@@ -279,8 +351,8 @@ export default function Puzzle3() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => navigate("/Instructions")}>
-          ← BACK TO MAP
+        <button className="back-btn" onClick={() => window.close()}>
+          CLOSE WINDOW
         </button>
 
         <div className="puzzle-tip">
@@ -291,7 +363,7 @@ export default function Puzzle3() {
         )}
       </div>
 
-      {status === "correct" && (
+      {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
@@ -318,7 +390,7 @@ export default function Puzzle3() {
         </div>
       )}
 
-      {(status === "hint" || status === "completed") && (
+      {!alreadySolvedCode && (status === "hint" || status === "completed") && (
         <div className="result-overlay">
           <div className="result-card wide">
             <h2>✦ QUESTION COMPLETED ✦</h2>
@@ -363,9 +435,6 @@ export default function Puzzle3() {
             </div>
 
             <div className="result-actions">
-              <button onClick={() => navigate("/Instructions")}>
-                CONTINUE →
-              </button>
               <button className="close-btn" onClick={() => window.close()}>
                 CLOSE WINDOW
               </button>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../style/Puzzle2.css";
 import MainGateBg from "../assets/MainGateBg.png";
+import { QUESTION_IDS } from "../constants/questionIds";
 
 // =========================================================================
 // BACKEND URL CONFIGURATION
@@ -17,7 +18,7 @@ function authHeaders() {
 }
 
 // ---- Puzzle configuration ----
-const PUZZLE_ID = "puzzle-2";
+const PUZZLE_ID = QUESTION_IDS.PUZZLE_2;
 const ANSWER = "refraction";
 const REWARD_POINTS = 15;
 
@@ -37,6 +38,44 @@ export default function Puzzle2() {
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | hint | completed
   const wrongTimeout = useRef(null);
   const [questId, setQuestId] = useState(null);
+  const [alreadySolvedCode, setAlreadySolvedCode] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  // Redirect to login if the student isn't authenticated.
+  useEffect(() => {
+    if (!localStorage.getItem("student_token")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // If this puzzle's question was already solved earlier (or in a previous
+  // session), show the student their verification code again in case they
+  // forgot to write it down before moving to the next location.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+          { headers: authHeaders() }
+        );
+        if (cancelled) return;
+        if (res.data?.completed || res.data?.isCompleted) {
+          setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
+        }
+      } catch (err) {
+        console.warn("Could not check puzzle status with server:", err);
+      } finally {
+        if (!cancelled) setCheckingStatus(false);
+      }
+    }
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Check from backend whether the puzzle has already been completed on load
   useEffect(() => {
@@ -83,6 +122,9 @@ export default function Puzzle2() {
     const prevQuestionId = res1.data.game.currentQuestion.id;
     setVerifying(true);
     setVerifyError("");
+      const currentIdx = res1.data.game.currentStageIndex;
+      const nextIdx = currentIdx + 1;
+      const nextQuestionId = PUZZLE_ID; // JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
   
     try {
       const res = await axios.post(
@@ -90,6 +132,7 @@ export default function Puzzle2() {
         {
           questionId: prevQuestionId,
           code: sequenceCode.trim(),
+          nextQuestionId: nextQuestionId,
         },
         { headers: authHeaders() }
       );
@@ -170,7 +213,35 @@ export default function Puzzle2() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        {!isVerified ? (
+        {checkingStatus ? (
+          <div className="puzzle-header">
+            <div>
+              <h1>◆ LOADING ◆</h1>
+              <p>Checking puzzle status...</p>
+            </div>
+          </div>
+        ) : alreadySolvedCode ? (
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>✦ PUZZLE COMPLETED ✦</h1>
+                <p>You've already solved this puzzle.</p>
+              </div>
+            </div>
+
+            <div className="code-display">
+              <span className="code-label">YOUR VERIFICATION CODE</span>
+              <span className="code-value">{alreadySolvedCode}</span>
+              <span className="code-note">
+                Enter this code at the next location puzzle page.
+              </span>
+            </div>
+
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
+          </>
+        ) : !isVerified ? (
           /* =========================================
              1. SEQUENCE CODE VERIFICATION SCREEN
              ========================================= */
@@ -299,7 +370,7 @@ export default function Puzzle2() {
         )}
       </div>
 
-      {status === "correct" && (
+      {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
@@ -312,7 +383,7 @@ export default function Puzzle2() {
         </div>
       )}
 
-      {(status === "hint" || status === "completed") && (
+      {!alreadySolvedCode && (status === "hint" || status === "completed") && (
         <div className="result-overlay">
           <div className="result-card wide">
             <h2>✦ QUESTION COMPLETED ✦</h2>

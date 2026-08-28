@@ -188,14 +188,14 @@ async function submitAnswer(req, res) {
 // ─── POST /api/game/verify-code ───────────────────────────────────────────────
 
 async function verifyCode(req, res) {
-  const { questionId, code } = req.body;
+  const { questionId, code, nextQuestionId } = req.body;
   console.log("verify-1");
   if (!questionId || !code) {
     return res.status(400).json({ message: 'questionId and code are required' });
   }
 
   const student = await requireActiveStudent(req.userId);
-
+  
     if (student.gameStatus !== 'in_progress' || String(student.currentQuestionId) !== String(questionId)) {
     return res.status(400).json({ message: 'This question is not currently active for you' });
   }
@@ -210,6 +210,16 @@ console.log("verify2");
     const nextQuestion = await Question.findById(student.currentQuestionId);
     return res.json({ correct: true, alreadyVerified: true, nextQuestion: toPublicQuestion(nextQuestion) });
   }
+  const setDoc = student.setsKey;
+  const questionsList = setDoc.questions || [];
+  const currentIdx = questionsList.findIndex((qId) => String(qId._id || qId) === String(questionId));
+  const nextIdx = currentIdx + 1;
+  console.log(questionsList, currentIdx, nextIdx, nextQuestionId);
+  console.log(student.currentQuestionId, questionId,nextQuestionId,questionsList[nextIdx]?._id || questionsList[nextIdx]);
+  if(String(questionsList[nextIdx]._id || questionsList[nextIdx]) !== String(nextQuestionId)) {
+    return res.status(400).json({ message: 'Next question ID does not match the expected sequence' });
+  }
+
 console.log("verify3");
   const now = new Date();
   const normalizedInput = normalizeText(code);
@@ -238,10 +248,7 @@ console.log("verify4");
   );
 
   // Advance to next question in student's assigned Sets sequence
-  const setDoc = student.setsKey;
-  const questionsList = setDoc.questions || [];
-  const currentIdx = questionsList.findIndex((qId) => String(qId._id || qId) === String(questionId));
-  const nextIdx = currentIdx + 1;
+
 
   if (nextIdx < questionsList.length) {
     const nextQuestionId = questionsList[nextIdx]._id || questionsList[nextIdx];
@@ -259,6 +266,7 @@ console.log("verify4");
           userId: student._id,
           questionId: nextQuestionId,
           status: 'unsolved',
+          verificationCode: nextUniqueCode,
         },
       },
       { upsert: true }
@@ -386,6 +394,30 @@ async function mainGateCode(req, res) {
   });
 }
 
+// ─── GET /api/student/puzzles/:questionId/status ──────────────────────────────
+// Looks up this student's progress on a question (by the id from the frontend's
+// QUESTION_IDS map) and, if it has been solved, returns their unique
+// verification code along with it.
+
+async function getPuzzleStatus(req, res) {
+  const { questionId } = req.params;
+  if (!questionId) {
+    return res.status(400).json({ message: 'questionId is required' });
+  }
+
+  const progress = await UserQuestionProgress.findOne({ userId: req.userId, questionId });
+  const solved = !!progress && progress.status !== 'unsolved';
+
+  res.json({
+    questionId,
+    status: progress?.status || 'unsolved',
+    completed: solved,
+    isCompleted: solved,
+    verificationCode: solved ? progress.verificationCode : null,
+    code: solved ? progress.verificationCode : null,
+  });
+}
+
 module.exports = {
   getMe,
   startGame,
@@ -394,4 +426,5 @@ module.exports = {
   useHint,
   finalAnswer,
   mainGateCode,
+  getPuzzleStatus,
 };

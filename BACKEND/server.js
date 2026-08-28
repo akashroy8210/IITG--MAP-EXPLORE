@@ -18,8 +18,8 @@ const app = express();
 const server = http.createServer(app);
 
 // const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
-const corsOrigin = ['http://localhost:5173','http://localhost:5174']
-app.use(cors({ origin: corsOrigin }));
+corsOrigin = process.env.CORS_ORIGIN || '*';
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Health check
@@ -33,7 +33,7 @@ app.use('/api', gameRoutes);                // GET /api/student/me, POST /api/ga
 app.use(notFound);
 app.use(errorHandler);
 
-const io = new Server(server, { cors: { origin: corsOrigin } });
+const io = new Server(server, { cors: { origin: '*' } });
 attachSocketServer(io);
 
 const PORT = process.env.PORT || 4000;

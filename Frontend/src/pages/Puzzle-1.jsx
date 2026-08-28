@@ -4,11 +4,12 @@ import axios from "axios";
 import "../style/Puzzle1.css";
 import MainGateBg from "../assets/MainGateBg.png";
 import puzzleImage from "../assets/puzzle-telescope.svg";
+import { QUESTION_IDS } from "../constants/questionIds";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 // ---- Puzzle configuration (swap per-location for future Puzzle-2, Puzzle-3 ...) ----
-const PUZZLE_ID = "puzzle-1";
+const PUZZLE_ID = QUESTION_IDS.PUZZLE_1;
 // Verification happens server-side (see handleSubmit) — this is only used
 // to name the object in the "quest complete" message.
 // const ANSWER = "telescope";
@@ -55,11 +56,49 @@ export default function Puzzle1() {
   const [code,setCode] = useState(0);
   
   const [toast, setToast] = useState(null);
+  const [alreadySolvedCode, setAlreadySolvedCode] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const wrongTimeout = useRef(null);
 
 
   const allCollected = collected.every(Boolean);
   const foundCount = collected.filter(Boolean).length;
+
+  // Redirect to login if the student isn't authenticated.
+  useEffect(() => {
+    if (!localStorage.getItem("student_token")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // If this puzzle's question was already solved earlier (or in a previous
+  // session), show the student their verification code again in case they
+  // forgot to write it down before moving to the next location.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
+          { headers: authHeaders() }
+        );
+        if (cancelled) return;
+        if (res.data?.completed || res.data?.isCompleted) {
+          setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
+        }
+      } catch (err) {
+        console.warn("Could not check puzzle status with server:", err);
+      } finally {
+        if (!cancelled) setCheckingStatus(false);
+      }
+    }
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Pull the authoritative collected-pieces list from the backend on load,
   // so pieces collected earlier (at another location, or another session)
@@ -148,7 +187,7 @@ export default function Puzzle1() {
 
     console.log("student_sets_key:", questions);
     console.log(questions[0].questions[1].nextLocationHint);
-    setNextLocHint(questions[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
+    setNextLocHint(questions[0].questions[1].nextLocationHint);
     
     const questionId = questions[0].questions[res1.data.game.currentStageIndex]._id;
     setStatus("checking");
@@ -187,7 +226,7 @@ export default function Puzzle1() {
       <img src={MainGateBg} alt="" className="puzzle-bg" />
       <div className="puzzle-overlay" />
 
-      {toast && (
+      {!alreadySolvedCode && toast && (
         <div className="piece-toast">
           <p>✦ {toast}</p>
           <button className="close-btn" onClick={() => window.close()}>
@@ -199,151 +238,193 @@ export default function Puzzle1() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        <div className="puzzle-header">
-          <div>
-            <h1>◆ PUZZLE CHALLENGE ◆</h1>
-            <p>
-              {currQuestion?.Question}
-            </p>
+        {checkingStatus ? (
+          <div className="puzzle-header">
+            <div>
+              <h1>◆ LOADING ◆</h1>
+              <p>Checking puzzle status...</p>
+            </div>
           </div>
-  
-        </div>
+        ) : alreadySolvedCode ? (
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>✦ PUZZLE COMPLETED ✦</h1>
+                <p>You've already solved this puzzle.</p>
+              </div>
+            </div>
 
-        <div className="puzzle-grid-wrap">
-          <div className="compass" aria-hidden="true">
-            <span className="compass-n">N</span>
-            <span className="compass-s">S</span>
-            <span className="compass-w">W</span>
-            <span className="compass-e">E</span>
-            <div className="compass-needle" />
-          </div>
+            <div className="code-display">
+              <span className="code-label">YOUR VERIFICATION CODE</span>
+              <span className="code-value">{alreadySolvedCode}</span>
+              <span className="code-note">
+                Enter this code at the next location puzzle page.
+              </span>
+            </div>
 
-          <div className="puzzle-grid">
-            {PIECES.map((piece) => {
-              const found = collected[piece.id];
-              return (
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="puzzle-header">
+              <div>
+                <h1>◆ PUZZLE CHALLENGE ◆</h1>
+                <p>
+                  {currQuestion?.Question}
+                </p>
+              </div>
+
+            </div>
+
+            <div className="puzzle-grid-wrap">
+              <div className="compass" aria-hidden="true">
+                <span className="compass-n">N</span>
+                <span className="compass-s">S</span>
+                <span className="compass-w">W</span>
+                <span className="compass-e">E</span>
+                <div className="compass-needle" />
+              </div>
+
+              <div className="puzzle-grid">
+                {PIECES.map((piece) => {
+                  const found = collected[piece.id];
+                  return (
+                    <div
+                      key={piece.id}
+                      className={`puzzle-piece piece-${piece.id} ${
+                        found ? "found" : "locked"
+                      }`}
+                      style={
+                        found
+                          ? {
+                              backgroundImage: `url(${puzzleImage})`,
+                              backgroundPosition: PIECE_POSITION[piece.id],
+                            }
+                          : undefined
+                      }
+                      title={found ? piece.location : "???"}
+                    >
+                      {!found && (
+                        <>
+                          <span className="piece-mark">?</span>
+                          <span className="piece-loc">{piece.location}</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="puzzle-progress">
+              {foundCount} / {PIECES.length} pieces collected
+            </div>
+
+            <div className="locations-list">
+              {PIECES.map((piece) => (
                 <div
                   key={piece.id}
-                  className={`puzzle-piece piece-${piece.id} ${
-                    found ? "found" : "locked"
-                  }`}
-                  style={
-                    found
-                      ? {
-                          backgroundImage: `url(${puzzleImage})`,
-                          backgroundPosition: PIECE_POSITION[piece.id],
-                        }
-                      : undefined
-                  }
-                  title={found ? piece.location : "???"}
+                  className={`location-chip ${collected[piece.id] ? "done" : ""}`}
                 >
-                  {!found && (
-                    <>
-                      <span className="piece-mark">?</span>
-                      <span className="piece-loc">{piece.location}</span>
-                    </>
+                  <span className="location-name">
+                    {collected[piece.id] ? "✓" : "📍"} {piece.location}
+                  </span>
+                  {!collected[piece.id] && collectId === piece.id && (
+                    <button
+                      type="button"
+                      className="collect-btn"
+                      onClick={() => handleCollect(piece.id)}
+                    >
+                      COLLECT
+                    </button>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="puzzle-progress">
-          {foundCount} / {PIECES.length} pieces collected
-        </div>
-
-        <div className="locations-list">
-          {PIECES.map((piece) => (
-            <div
-              key={piece.id}
-              className={`location-chip ${collected[piece.id] ? "done" : ""}`}
-            >
-              <span className="location-name">
-                {collected[piece.id] ? "✓" : "📍"} {piece.location}
-              </span>
-              {!collected[piece.id] && collectId === piece.id && (
-                <button
-                  type="button"
-                  className="collect-btn"
-                  onClick={() => handleCollect(piece.id)}
-                >
-                  COLLECT
-                </button>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
 
-        <form className="answer-section" onSubmit={handleSubmit}>
-          <p className="answer-label">
-            {allCollected
-              ? "Think you know the answer?"
-              : "Collect all 4 pieces to unlock the answer box."}
-          </p>
-          <div className="answer-row">
-            <input
-              type="text"
-              placeholder="Enter the name of the object..."
-              value={answer}
-              disabled={!allCollected || status !== "playing"}
-              onChange={(e) => setAnswer(e.target.value)}
-            />
-            <button
-              type="submit"
-              className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
-              disabled={!allCollected || status !== "playing"}
-            >
-              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
-            </button>
-          </div>
-          {status === "wrong" && (
-            <p className="answer-error">Not quite. Try again!</p>
-          )}
-
-        </form>
-        <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
-          </div>
-          <div className="hint-box">
-            <span>💡</span>
-            <p>
-              Four parts of the same image are hidden across campus. Collect
-              them all!
-              {!allCollected && (
-                <>
-                  {" "}
-                  Still hidden at:{" "}
-                  {PIECES.filter((p) => !collected[p.id])
-                    .map((p) => p.location)
-                    .join(", ")}
-                  .
-                </>
+            <form className="answer-section" onSubmit={handleSubmit}>
+              <p className="answer-label">
+                {allCollected
+                  ? "Think you know the answer?"
+                  : "Collect all 4 pieces to unlock the answer box."}
+              </p>
+              <div className="answer-row">
+                <input
+                  type="text"
+                  placeholder="Enter the name of the object..."
+                  value={answer}
+                  disabled={!allCollected || status !== "playing"}
+                  onChange={(e) => setAnswer(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
+                  disabled={!allCollected || status !== "playing"}
+                >
+                  {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
+                </button>
+              </div>
+              {status === "wrong" && (
+                <p className="answer-error">Not quite. Try again!</p>
               )}
-            </p>
-          </div>
-        </div>
+
+            </form>
+            <div className="puzzle-footer">
+              <div className="reward-badge">
+                <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
+              </div>
+              <div className="hint-box">
+                <span>💡</span>
+                <p>
+                  Four parts of the same image are hidden across campus. Collect
+                  them all!
+                  {!allCollected && (
+                    <>
+                      {" "}
+                      Still hidden at:{" "}
+                      {PIECES.filter((p) => !collected[p.id])
+                        .map((p) => p.location)
+                        .join(", ")}
+                      .
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
 
 
-        <div className="puzzle-tip">
-          💡 TIP: Explore every corner of the campus. Every location has a
-          story to tell!
-        </div>
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
+
+            <div className="puzzle-tip">
+              💡 TIP: Explore every corner of the campus. Every location has a
+              story to tell!
+            </div>
+          </>
+        )}
       </div>
 
-      {status === "correct" && (
+      {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <p>You correctly identified the Answer!</p>
             <p className="points-earned">+{REWARD_POINTS} POINTS</p>
+
+            <div className="code-display">
+              <span className="code-label">YOUR NEXT LOCATION CODE</span>
+              <span className="code-value">{code}</span>
+              <span className="code-note">
+                Enter this code at the next location puzzle page to unlock it.
+              </span>
+            </div>
+
             <div className="next-hint-box">
               <span>💡</span>
-              <p>
-                {nextLocHint}
-                Enter this code at the next Location: {code}
-              </p>
+              <p>{nextLocHint}</p>
             </div>
             <div className="result-actions">
               <button className="close-btn" onClick={() => window.close()}>
@@ -355,7 +436,7 @@ export default function Puzzle1() {
         </div>
       )}
 
-      
+
     </div>
   );
 }

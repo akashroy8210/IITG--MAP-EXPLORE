@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../style/Maingate.css";
 import MainGateBg from "../assets/MainGateBg.png";
@@ -36,6 +37,13 @@ function makeConfettiPieces(count) {
   }));
 }
 
+function clearGameStorage() {
+  localStorage.removeItem("student_token");
+  localStorage.removeItem("student_user");
+  localStorage.removeItem("student_sets_key");
+  localStorage.removeItem("puzzle-1-progress");
+}
+
 function formatCompletedAt(value) {
   if (!value) return "";
   try {
@@ -49,12 +57,20 @@ function formatCompletedAt(value) {
 }
 
 export default function Maingate() {
+  const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [status, setStatus] = useState("idle"); // idle | checking | success | error
   const [completedAt, setCompletedAt] = useState(null);
   const submitLock = useRef(false);
 
   const confettiPieces = useMemo(() => makeConfettiPieces(70), []);
+
+  // Redirect to login if the student isn't authenticated.
+  useEffect(() => {
+    if (!localStorage.getItem("student_token")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   // Check from backend whether the main gate was already completed on load
   useEffect(() => {
@@ -75,6 +91,7 @@ export default function Maingate() {
             setCompletedAt(res.data.completionTimeSeconds);
           }
           setStatus("success");
+          clearGameStorage();
         }
       } catch (err) {
         console.warn("Could not check gate completion status with server:", err);
@@ -109,6 +126,7 @@ export default function Maingate() {
         console.log("Completion time (HH:MM:SS):", time);
         setCompletedAt(time);
         setStatus("success");
+        clearGameStorage();
       } else {
         setStatus("error");
       }

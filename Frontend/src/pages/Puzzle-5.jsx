@@ -6,6 +6,7 @@ import MainGateBg from "../assets/MainGateBg.png";
 import Banner from "../assets/Banner.png";
 import banner2 from "../assets/banner2.png";
 import puzzleImage from "../assets/puzzle-telescope.svg";
+import { QUESTION_IDS } from "../constants/questionIds";
 
 // =========================================================================
 // BACKEND URL CONFIGURATION
@@ -13,6 +14,9 @@ import puzzleImage from "../assets/puzzle-telescope.svg";
 // =========================================================================
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 const VERIFY_CODE_ENDPOINT = `${API_BASE_URL}/game/verify-code`; // <<< ENTER YOUR BACKEND URL HERE
+
+// ---- Puzzle configuration ----
+const PUZZLE_ID = QUESTION_IDS.PUZZLE_5;
 
 function authHeaders() {
   const token = localStorage.getItem("student_token");
@@ -36,11 +40,19 @@ export default function Puzzle5() {
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState("playing"); // playing | correct | wrong | image | checking
   const [flipped, setFlipped] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const wrongTimeout = useRef(null);
 
   const [cardImage] = useState(
     () => RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)]
   );
+
+  // Redirect to login if the student isn't authenticated.
+  useEffect(() => {
+    if (!localStorage.getItem("student_token")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   // Check from backend whether the puzzle has already been completed on load
   useEffect(() => {
@@ -56,11 +68,12 @@ export default function Puzzle5() {
         if (cancelled) return;
 
         if (res.data?.completed || res.data?.isCompleted) {
-          setIsVerified(true);
           setStatus("image");
         }
       } catch (err) {
         console.warn("Could not check puzzle completion status with server:", err);
+      } finally {
+        if (!cancelled) setCheckingStatus(false);
       }
     }
 
@@ -81,12 +94,14 @@ export default function Puzzle5() {
       const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
       console.log("student_sets_key:", res1);
       const prevQuestionId = res1[0].questions[3]._id;
+     
       
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
-          questionId:prevQuestionId,
+          questionId: prevQuestionId,
           code: sequenceCode.trim(),
+          nextQuestionId: PUZZLE_ID, // nextQuestionId
         },
         { headers: authHeaders() }
       );
@@ -104,7 +119,6 @@ export default function Puzzle5() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
-      setIsVerified(true);
       setVerifying(false);
     }
   }
@@ -150,7 +164,14 @@ export default function Puzzle5() {
       <div className="puzzle-card">
         <div className="puzzle-top-roll" />
 
-        {!isVerified ? (
+        {checkingStatus ? (
+          <div className="puzzle-header">
+            <div>
+              <h1>◆ LOADING ◆</h1>
+              <p>Checking puzzle status...</p>
+            </div>
+          </div>
+        ) : !isVerified ? (
           /* =========================================
              1. SEQUENCE CODE VERIFICATION SCREEN
              ========================================= */
@@ -247,8 +268,8 @@ export default function Puzzle5() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => navigate("/Instructions")}>
-          ← BACK TO MAP
+        <button className="back-btn" onClick={() => window.close()}>
+          CLOSE WINDOW
         </button>
 
         <div className="puzzle-tip">
