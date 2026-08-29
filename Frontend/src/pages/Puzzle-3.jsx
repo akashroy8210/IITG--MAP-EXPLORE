@@ -198,7 +198,7 @@ export default function Puzzle3() {
       <img src={MainGateBg} alt="" className="puzzle-bg" />
       <div className="puzzle-overlay" />
 
-      <div className="puzzle-card">
+      <div className="puzzle-card nes-container is-dark">
         <div className="puzzle-top-roll" />
 
         {checkingStatus ? (
@@ -225,7 +225,7 @@ export default function Puzzle3() {
               </span>
             </div>
 
-            <button className="back-btn" onClick={() => window.close()}>
+            <button className="back-btn nes-btn" onClick={() => window.close()}>
               CLOSE WINDOW
             </button>
           </>
@@ -247,7 +247,7 @@ export default function Puzzle3() {
               <p className="answer-label">Enter Verification Code:</p>
               <div className="answer-row">
                 <input
-                  type="text"
+                  type="text" className="nes-input is-dark"
                   placeholder="Enter code..."
                   value={sequenceCode}
                   disabled={verifying}
@@ -255,7 +255,7 @@ export default function Puzzle3() {
                 />
                 <button
                   type="submit"
-                  className="submit-btn"
+                  className="submit-btn nes-btn is-warning"
                   disabled={verifying || !sequenceCode.trim()}
                 >
                   {verifying ? "VERIFYING..." : "VERIFY CODE"}
@@ -266,7 +266,7 @@ export default function Puzzle3() {
               )}
             </form>
 
-            <button className="back-btn" onClick={() => window.close()}>
+            <button className="back-btn nes-btn" onClick={() => window.close()}>
               CLOSE WINDOW
             </button>
           </>
@@ -319,7 +319,7 @@ export default function Puzzle3() {
           <p className="answer-label">Enter your answer:</p>
           <div className="answer-row">
             <input
-              type="text"
+              type="text" className="nes-input is-dark"
               placeholder="Enter a name..."
               value={answer}
               disabled={status !== "playing"}
@@ -327,7 +327,7 @@ export default function Puzzle3() {
             />
             <button
               type="submit"
-              className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
+              className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
               disabled={status !== "playing"}
             >
               {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
@@ -351,7 +351,7 @@ export default function Puzzle3() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => window.close()}>
+        <button className="back-btn nes-btn" onClick={() => window.close()}>
           CLOSE WINDOW
         </button>
 
@@ -365,7 +365,7 @@ export default function Puzzle3() {
 
       {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
-          <div className="result-card">
+          <div className="result-card nes-container is-dark">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <p>Correct! { 10} was seated in Seat 3.</p>
             <p className="points-earned">+{10} POINTS</p>
@@ -435,7 +435,7 @@ export default function Puzzle3() {
             </div>
 
             <div className="result-actions">
-              <button className="close-btn" onClick={() => window.close()}>
+              <button className="close-btn nes-btn is-warning" onClick={() => window.close()}>
                 CLOSE WINDOW
               </button>
             </div>

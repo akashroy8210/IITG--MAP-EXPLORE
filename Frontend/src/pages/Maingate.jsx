@@ -143,7 +143,7 @@ export default function Maingate() {
       <img src={MainGateBg} alt="" className="maingate-bg" />
       <div className="maingate-overlay" />
 
-      <div className="maingate-card">
+      <div className="maingate-card nes-container is-dark">
         <div className="maingate-top-roll" />
 
         {status !== "success" ? (
@@ -161,7 +161,7 @@ export default function Maingate() {
               <input
                 id="gate-code"
                 name="gate-code"
-                type="text"
+                type="text" className="nes-input is-dark"
                 inputMode="numeric"
                 autoComplete="off"
                 placeholder="Enter the code..."
@@ -173,7 +173,7 @@ export default function Maingate() {
 
               <button
                 type="submit"
-                className="unlock-btn"
+                className="unlock-btn nes-btn is-error"
                 disabled={status === "checking" || !code.trim()}
               >
                 {status === "checking" ? "CHECKING…" : "UNLOCK THE GATE"}

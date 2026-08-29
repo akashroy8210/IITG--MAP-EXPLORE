@@ -2,7 +2,7 @@
    THE IITG QUEST - INSTRUCTIONS PAGE DARK FANTASY RPG STYLING
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Cinzel+Decorative:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;600;700;800;900&family=Silkscreen:wght@400;700&display=swap');
 
 * {
   margin: 0;
@@ -19,7 +19,7 @@
   justify-content: center;
   align-items: center;
   background: url("../assets/MainGateBg.png") center/cover no-repeat;
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   overflow-x: hidden;
   padding: 24px 16px;
 }
@@ -165,7 +165,7 @@
 .quest-card-title {
   color: #f7e3b5;
   font-size: clamp(20px, 4vw, 24px);
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-weight: 900;
   letter-spacing: 3px;
   text-shadow: 
@@ -256,7 +256,7 @@
 
 .mission-title {
   font-size: clamp(20px, 4.5vw, 26px);
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-weight: 900;
   color: #f7e3b5;
   letter-spacing: 3px;
@@ -334,7 +334,7 @@
   background: linear-gradient(145deg, #3a2717, #1c1109);
   border: 2px solid #d4af37;
   color: #ffe89c;
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: 13px;
   font-weight: 900;
   display: flex;
@@ -356,7 +356,7 @@
   color: #f5c242;
   letter-spacing: 1.5px;
   margin: 0;
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
 }
 
 .step-desc {
@@ -411,7 +411,7 @@
 }
 
 .btn-text {
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: 15px;
   font-weight: 900;
   color: #241403;

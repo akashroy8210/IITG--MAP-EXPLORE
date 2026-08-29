@@ -16,7 +16,7 @@
   padding: 40px 16px;
   overflow-y: auto;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
 }
 
 .puzzle-bg {
@@ -267,7 +267,7 @@
   background: linear-gradient(180deg, #6b3f1d, #351a0c);
   color: #f6d98b;
 
-  font-family: Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 1px;
@@ -352,7 +352,7 @@
   background: transparent;
 
   color: #4b2917;
-  font-family: Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 0.5px;
@@ -448,7 +448,7 @@
   background: linear-gradient(180deg, #6b3f1d, #351a0c);
   color: #f6d98b;
 
-  font-family: Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 1px;

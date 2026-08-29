@@ -2,6 +2,7 @@ const express = require('express');
 const adminAuth = require('../middleware/adminAuth');
 const requireRole = require('../middleware/requireRole');
 const { getDashboard } = require('../controllers/dashboard.controller');
+const { getLeaderboard } = require('../controllers/leaderboard.controller');
 const {
   listStudents,
   createSingleStudent,
@@ -44,6 +45,7 @@ router.use(adminAuth);
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 router.get('/dashboard', getDashboard);
+router.get('/leaderboard', getLeaderboard);
 
 // ─── Questions ────────────────────────────────────────────────────────────────
 router.get('/questions', listQuestions);

@@ -227,15 +227,15 @@ export default function Puzzle1() {
       <div className="puzzle-overlay" />
 
       {!alreadySolvedCode && toast && (
-        <div className="piece-toast">
+        <div className="piece-toast nes-container is-dark">
           <p>✦ {toast}</p>
-          <button className="close-btn" onClick={() => window.close()}>
+          <button className="close-btn nes-btn is-warning" onClick={() => window.close()}>
             Click here to continue with the game
           </button>
         </div>
       )}
 
-      <div className="puzzle-card">
+      <div className="puzzle-card nes-container is-dark">
         <div className="puzzle-top-roll" />
 
         {checkingStatus ? (
@@ -262,7 +262,7 @@ export default function Puzzle1() {
               </span>
             </div>
 
-            <button className="back-btn" onClick={() => window.close()}>
+            <button className="back-btn nes-btn" onClick={() => window.close()}>
               CLOSE WINDOW
             </button>
           </>
@@ -334,7 +334,7 @@ export default function Puzzle1() {
                   {!collected[piece.id] && collectId === piece.id && (
                     <button
                       type="button"
-                      className="collect-btn"
+                      className="collect-btn nes-btn is-success"
                       onClick={() => handleCollect(piece.id)}
                     >
                       COLLECT
@@ -352,7 +352,7 @@ export default function Puzzle1() {
               </p>
               <div className="answer-row">
                 <input
-                  type="text"
+                  type="text" className="nes-input is-dark"
                   placeholder="Enter the name of the object..."
                   value={answer}
                   disabled={!allCollected || status !== "playing"}
@@ -360,7 +360,7 @@ export default function Puzzle1() {
                 />
                 <button
                   type="submit"
-                  className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
+                  className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
                   disabled={!allCollected || status !== "playing"}
                 >
                   {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
@@ -395,7 +395,7 @@ export default function Puzzle1() {
             </div>
 
 
-            <button className="back-btn" onClick={() => window.close()}>
+            <button className="back-btn nes-btn" onClick={() => window.close()}>
               CLOSE WINDOW
             </button>
 
@@ -409,7 +409,7 @@ export default function Puzzle1() {
 
       {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
-          <div className="result-card">
+          <div className="result-card nes-container is-dark">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <p>You correctly identified the Answer!</p>
             <p className="points-earned">+{REWARD_POINTS} POINTS</p>
@@ -427,7 +427,7 @@ export default function Puzzle1() {
               <p>{nextLocHint}</p>
             </div>
             <div className="result-actions">
-              <button className="close-btn" onClick={() => window.close()}>
+              <button className="close-btn nes-btn is-warning" onClick={() => window.close()}>
                 Click here to continue with the game
               </button>
             </div>

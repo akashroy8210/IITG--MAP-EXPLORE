@@ -31,6 +31,7 @@ import RouteKeysPage from './admin/pages/routes/RouteKeysPage';
 import MembersPage from './admin/pages/members/MembersPage';
 import AddMemberPage from './admin/pages/members/AddMemberPage';
 import SettingsPage from './admin/pages/settings/SettingsPage';
+import LeaderboardPage from './admin/pages/leaderboard/LeaderboardPage';
 
 function App() {
 
@@ -169,6 +170,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AddMemberPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/leaderboard"
+            element={
+              <ProtectedRoute>
+                <LeaderboardPage />
               </ProtectedRoute>
             }
           />
