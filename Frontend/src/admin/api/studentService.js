@@ -6,6 +6,11 @@ export const studentService = {
     return response.data;
   },
 
+  async getLeaderboard() {
+    const response = await apiClient.get('/admin/leaderboard');
+    return response.data;
+  },
+
   async getStudent(id) {
     const response = await apiClient.get(`/admin/students/${id}`);
     return response.data;

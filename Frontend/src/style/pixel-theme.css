@@ -1,0 +1,294 @@
+/* ==========================================================================
+   RETRO PIXEL UI MASTER THEME FOR THE IITG QUEST (STUDENT GAME UI)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;600;700;800;900&family=Silkscreen:wght@400;700&display=swap');
+@import 'nes.css/css/nes.min.css';
+
+/* Scope Pixel UI variables and base properties to non-admin student pages */
+.landing-page,
+.instructions-page,
+.puzzle-page,
+.maingate-page {
+  --pixel-bg-dark: #12121c;
+  --pixel-card-bg: #212529;
+  --pixel-amber: #f7d51d;
+  --pixel-green: #92cc41;
+  --pixel-red: #e76e55;
+  --pixel-blue: #209cee;
+  --pixel-purple: #b455e7;
+  --pixel-white: #ffffff;
+  --pixel-border-color: #ffffff;
+
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace !important;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  color: #ffffff;
+}
+
+/* CRT Scanline Overlay Effect for Student Pages */
+.landing-page::before,
+.instructions-page::before,
+.puzzle-page::before,
+.maingate-page::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 99;
+  opacity: 0.7;
+}
+
+/* Force Pixel Art Crisp Images */
+.gate-bg,
+.puzzle-bg,
+.maingate-bg,
+.puzzle-piece,
+.puzzle-card img {
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+}
+
+/* Pixel Card / NES Container Override */
+.landing-page .quest-container .login-card,
+.instructions-page .open-quest-panel,
+.instructions-page .closed-quest-card,
+.puzzle-page .puzzle-card,
+.maingate-page .maingate-card,
+.result-card {
+  background: #212529 !important;
+  border: 4px solid #ffffff !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 4px #000, 
+    0 -4px #000, 
+    4px 0 #000, 
+    -4px 0 #000, 
+    4px 4px #000, 
+    4px -4px #000, 
+    -4px 4px #000, 
+    -4px -4px #000, 
+    8px 8px 0 rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  font-family: 'Press Start 2P', cursive, monospace !important;
+}
+
+/* Pixel Buttons */
+.landing-page .start-button,
+.instructions-page .enter-campus-btn,
+.puzzle-page .submit-btn,
+.puzzle-page .back-btn,
+.puzzle-page .collect-btn,
+.puzzle-page .close-btn,
+.maingate-page .unlock-btn,
+.maingate-page .home-btn {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  border: 4px solid #000000 !important;
+  border-radius: 0px !important;
+  padding: 12px 18px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px #000, 4px 0 #000, 4px 4px #000 !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+.landing-page .start-button {
+  background-color: #92cc41 !important;
+  color: #000000 !important;
+}
+
+.instructions-page .enter-campus-btn {
+  background-color: #f7d51d !important;
+  color: #000000 !important;
+}
+
+.puzzle-page .submit-btn {
+  background-color: #f7d51d !important;
+  color: #000000 !important;
+}
+
+.maingate-page .unlock-btn {
+  background-color: #e76e55 !important;
+  color: #ffffff !important;
+}
+
+/* Button Active Press State */
+.landing-page .start-button:active,
+.instructions-page .enter-campus-btn:active,
+.puzzle-page .submit-btn:active,
+.puzzle-page .back-btn:active,
+.puzzle-page .collect-btn:active,
+.maingate-page .unlock-btn:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 0 1px #000, 1px 0 #000, 1px 1px #000 !important;
+}
+
+/* Pixel Inputs */
+.landing-page input,
+.puzzle-page input,
+.maingate-page input {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  font-size: 11px !important;
+  background-color: #101018 !important;
+  color: #f7d51d !important;
+  border: 4px solid #ffffff !important;
+  border-radius: 0px !important;
+  padding: 12px 14px !important;
+  box-shadow: inset 0 0 0 2px #000000 !important;
+  outline: none !important;
+}
+
+.landing-page input:focus,
+.puzzle-page input:focus,
+.maingate-page input:focus {
+  border-color: #f7d51d !important;
+  box-shadow: inset 0 0 0 2px #000000, 0 0 8px #f7d51d !important;
+}
+
+/* Pixel Headings & Text Shadows */
+.landing-page .game-title,
+.instructions-page .mission-title,
+.instructions-page .quest-card-title,
+.puzzle-page h1,
+.maingate-page h1,
+.result-card h2 {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  text-shadow: 3px 3px 0 #000000, -2px -2px 0 #000000, 2px -2px 0 #000000, -2px 2px 0 #000000 !important;
+  letter-spacing: 1px !important;
+  color: #f7d51d !important;
+}
+
+/* HUD Elements (8-bit Badge Style) */
+.hud-element {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  font-size: 10px !important;
+  background: #212529 !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 3px 3px 0 #000000 !important;
+  padding: 8px 12px !important;
+  border-radius: 0px !important;
+  color: #92cc41 !important;
+}
+
+.online-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #92cc41;
+  margin-right: 6px;
+  animation: pixelPulse 1s steps(2, start) infinite;
+}
+
+@keyframes pixelPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* Pixel Quest Step Cards */
+.quest-step {
+  background: #181825 !important;
+  border: 3px solid #ffffff !important;
+  border-radius: 0px !important;
+  box-shadow: 3px 3px 0 #000000 !important;
+  padding: 14px !important;
+}
+
+.step-badge {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  background: #f7d51d !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0px !important;
+  padding: 4px 8px !important;
+}
+
+.player-status-bar {
+  background: #181825 !important;
+  border: 3px solid #f7d51d !important;
+  border-radius: 0px !important;
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  font-size: 11px !important;
+  color: #f7d51d !important;
+  box-shadow: 4px 4px 0 #000000 !important;
+}
+
+/* Puzzle Grid Pieces Pixel Style */
+.puzzle-grid {
+  border: 4px solid #ffffff !important;
+  background: #101018 !important;
+  box-shadow: 4px 4px 0 #000000 !important;
+}
+
+.puzzle-piece {
+  border: 2px solid #000000 !important;
+  border-radius: 0px !important;
+  image-rendering: pixelated !important;
+}
+
+.puzzle-piece.locked {
+  background: #212529 !important;
+  color: #f7d51d !important;
+  font-family: 'Press Start 2P', cursive, monospace !important;
+}
+
+.location-chip {
+  background: #181825 !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 0px !important;
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  font-size: 10px !important;
+}
+
+.location-chip.done {
+  border-color: #92cc41 !important;
+  background: #1a2f1a !important;
+  color: #92cc41 !important;
+}
+
+/* Result Overlay Dialogue Box */
+.result-overlay {
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+.result-card {
+  background: #212529 !important;
+  border: 5px solid #f7d51d !important;
+  box-shadow: 8px 8px 0 #000000 !important;
+}
+
+.code-display {
+  background: #101018 !important;
+  border: 3px solid #209cee !important;
+  border-radius: 0px !important;
+  font-family: 'Press Start 2P', cursive, monospace !important;
+}
+
+.code-value {
+  color: #f7d51d !important;
+  font-size: 24px !important;
+  text-shadow: 2px 2px 0 #000000 !important;
+  letter-spacing: 3px !important;
+}
+
+/* Scrollbar Pixel Style */
+body::-webkit-scrollbar {
+  width: 10px;
+}
+body::-webkit-scrollbar-track {
+  background: #101018;
+}
+body::-webkit-scrollbar-thumb {
+  background: #f7d51d;
+  border: 2px solid #000000;
+}

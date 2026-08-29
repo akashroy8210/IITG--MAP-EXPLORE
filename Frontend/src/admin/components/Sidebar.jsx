@@ -11,6 +11,7 @@ export default function Sidebar() {
     { path: '/admin/students', label: 'All Students', icon: '🎓' },
     { path: '/admin/students/create', label: 'Create Student', icon: '➕' },
     { path: '/admin/students/bulk-create', label: 'Bulk Create', icon: '📦' },
+    { path: '/admin/leaderboard', label: 'Leaderboard', icon: '🏆' },
     { path: '/admin/maps', label: 'Campus Maps', icon: '🗺️' },
     { path: '/admin/maps/create', label: 'Create Map', icon: '📍' },
     { path: '/admin/members', label: 'Admin Members', icon: '🛡️' },
@@ -30,7 +31,7 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
-            end={item.path === '/admin/students' || item.path === '/admin/maps' || item.path === '/admin/members'}
+            end={item.path === '/admin/students' || item.path === '/admin/maps' || item.path === '/admin/members' || item.path === '/admin/leaderboard'}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           >
             <span className="nav-icon">{item.icon}</span>

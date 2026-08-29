@@ -181,7 +181,7 @@ export default function Puzzle2() {
       <img src={MainGateBg} alt="" className="puzzle-bg" />
       <div className="puzzle-overlay" />
 
-      <div className="puzzle-card">
+      <div className="puzzle-card nes-container is-dark">
         <div className="puzzle-top-roll" />
 
         {checkingStatus ? (
@@ -208,7 +208,7 @@ export default function Puzzle2() {
               </span>
             </div>
 
-            <button className="back-btn" onClick={() => window.close()}>
+            <button className="back-btn nes-btn" onClick={() => window.close()}>
               CLOSE WINDOW
             </button>
           </>
@@ -230,7 +230,7 @@ export default function Puzzle2() {
               <p className="answer-label">Enter Verification Code:</p>
               <div className="answer-row">
                 <input
-                  type="text"
+                  type="text" className="nes-input is-dark"
                   placeholder="Enter code..."
                   value={sequenceCode}
                   disabled={verifying}
@@ -238,7 +238,7 @@ export default function Puzzle2() {
                 />
                 <button
                   type="submit"
-                  className="submit-btn"
+                  className="submit-btn nes-btn is-warning"
                   disabled={verifying || !sequenceCode.trim()}
                 >
                   {verifying ? "VERIFYING..." : "VERIFY CODE"}
@@ -331,7 +331,7 @@ export default function Puzzle2() {
             />
             <button
               type="submit"
-              className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
+              className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
               disabled={status !== "playing"}
             >
               {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
@@ -364,7 +364,7 @@ export default function Puzzle2() {
 
       {!alreadySolvedCode && status === "correct" && (
         <div className="result-overlay">
-          <div className="result-card">
+          <div className="result-card nes-container is-dark">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <button onClick={() => setStatus("hint")}>
               CONTINUE →
@@ -398,7 +398,7 @@ export default function Puzzle2() {
               </p>
             </div>
             <div>
-              <button className="close-btn" onClick={()=>window.close()}>Click here to continue with the game</button>
+              <button className="close-btn nes-btn is-warning" onClick={()=>window.close()}>Click here to continue with the game</button>
             </div>
           </div>
         </div>

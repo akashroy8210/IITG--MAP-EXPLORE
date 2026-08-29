@@ -17,7 +17,7 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
 }
 
 .maingate-bg {
@@ -160,7 +160,7 @@
   background: linear-gradient(180deg, #6b3f1d, #351a0c);
   color: #f6d98b;
 
-  font-family: Georgia, serif;
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
   font-size: clamp(13px, 3.6vw, 14.5px);
   font-weight: bold;
   letter-spacing: 1.5px;

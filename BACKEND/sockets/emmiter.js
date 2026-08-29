@@ -12,11 +12,17 @@ function room(userId) {
 }
 
 function emitGameStarted(userId, payload) {
-  if (ioInstance) ioInstance.to(room(userId)).emit('game_started', payload);
+  if (ioInstance) {
+    ioInstance.to(room(userId)).emit('game_started', payload);
+    ioInstance.emit('leaderboard_updated', { userId, event: 'game_started', ...payload });
+  }
 }
 
 function emitAnswerSolved(userId, payload) {
-  if (ioInstance) ioInstance.to(room(userId)).emit('answer_solved', payload);
+  if (ioInstance) {
+    ioInstance.to(room(userId)).emit('answer_solved', payload);
+    ioInstance.emit('leaderboard_updated', { userId, event: 'answer_solved', ...payload });
+  }
 }
 
 function emitAnswerRejected(userId, payload) {
@@ -24,11 +30,17 @@ function emitAnswerRejected(userId, payload) {
 }
 
 function emitCodeVerified(userId, payload) {
-  if (ioInstance) ioInstance.to(room(userId)).emit('code_verified', payload);
+  if (ioInstance) {
+    ioInstance.to(room(userId)).emit('code_verified', payload);
+    ioInstance.emit('leaderboard_updated', { userId, event: 'code_verified', ...payload });
+  }
 }
 
 function emitHintUsed(userId, payload) {
-  if (ioInstance) ioInstance.to(room(userId)).emit('hint_used', payload);
+  if (ioInstance) {
+    ioInstance.to(room(userId)).emit('hint_used', payload);
+    ioInstance.emit('leaderboard_updated', { userId, event: 'hint_used', ...payload });
+  }
 }
 
 function emitBonusUsed(userId, payload) {
