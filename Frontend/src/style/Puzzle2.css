@@ -190,6 +190,42 @@
   color: #3b2515;
 }
 
+.math-equation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #4b2917;
+}
+
+.math-equation .fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.math-equation .numerator {
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 2px solid #5a3217;
+  padding: 0 4px 2px;
+  text-align: center;
+  color: #3b2515;
+}
+
+.math-equation .denominator {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 2px 4px 0;
+  text-align: center;
+  color: #3b2515;
+}
+
 /* =========================
    ANSWER
 ========================= */

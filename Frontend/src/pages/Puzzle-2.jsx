@@ -19,8 +19,7 @@ function authHeaders() {
 
 // ---- Puzzle configuration ----
 const PUZZLE_ID = QUESTION_IDS.PUZZLE_2;
-const ANSWER = "refraction";
-const REWARD_POINTS = 15;
+
 
 export default function Puzzle2() {
   const navigate = useNavigate();
@@ -81,35 +80,6 @@ export default function Puzzle2() {
   useEffect(() => {
     let cancelled = false;
 
-
-
-    // async function checkCompletionStatus() {
-    //   try {
-    //     const res = await axios.get(
-    //       `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
-    //       { headers: authHeaders() }
-    //     );
-
-    //     if (cancelled) return;
-
-    //     if (res.data?.completed || res.data?.isCompleted) {
-    //       setIsVerified(true);
-    //       const codeFromBackend =
-    //         res.data?.nextCode ||
-    //         res.data?.code ||
-    //         res.data?.sequenceCode ||
-    //         res.data?.locationCode;
-    //       if (codeFromBackend) {
-    //         setNextCode(codeFromBackend);
-    //       }
-    //       setStatus("completed");
-    //     }
-    //   } catch (err) {
-    //     console.warn("Could not check puzzle completion status with server:", err);
-    //   }
-    // }
-
-    //checkCompletionStatus();
     return () => {
       cancelled = true;
     };
@@ -150,9 +120,10 @@ export default function Puzzle2() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
-
+      
       setVerifying(false);
     }
+    
   }
 
   async function handleSubmit(e) {
@@ -278,6 +249,10 @@ export default function Puzzle2() {
               )}
             </form>
 
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
+
           </>
         ) : (
           /* =========================================
@@ -288,41 +263,59 @@ export default function Puzzle2() {
               <div>
                 <h1>◆ PUZZLE CHALLENGE ◆</h1>
                 <p>
-                  Professor X left a note for you in the Physics Department.
+                  Professor Albert left a note for you in the Physics Department.
                   Read it carefully, then answer the question below.
                 </p>
               </div>
             </div>
 
         <div className="physics-note">
-          <div className="note-seal">✦</div>
-          <h2 className="note-title">A Note from Professor X</h2>
+          <div className="note-seal">🌍</div>
+          <h2 className="note-title">The Weight of an Astronaut 🪐</h2>
 
-          <p className="note-body">
-            "Ah, you made it. I knew the telescope would lead you here.
-            Let me tell you something about how that telescope actually
-            works.
+          <p className="note-body" style={{ fontStyle: "normal", marginBottom: "10px" }}>
+            Every object in the universe attracts every other object with a force called <strong>gravitational force</strong>. The strength of this force depends on the masses of the objects and the distance between them.
           </p>
 
-          <p className="note-body">
-            When light travels from one medium into another — say, from
-            air into a curved glass lens — it changes speed, and because
-            of that, it bends. This bending of light as it crosses the
-            boundary between two media is what allows a lens to gather
-            faint, scattered starlight and focus it into a single sharp
-            point. Without it, every telescope, microscope, and pair of
-            spectacles would be useless.
+          <p className="note-body" style={{ fontStyle: "normal", marginBottom: "6px" }}>
+            The acceleration due to gravity of a celestial body can be expressed as:
+          </p>
+          <div className="math-equation">
+            <span style={{ fontSize: "16px", fontWeight: "bold" }}>g = </span>
+            <div className="fraction">
+              <span className="numerator">GM</span>
+              <span className="denominator">r<sup>2</sup></span>
+            </div>
+          </div>
+          <p className="note-body" style={{ fontStyle: "normal", fontSize: "12px", marginBottom: "10px", textAlign: "center" }}>
+            where <em>G</em> is the universal gravitational constant, <em>M</em> is the mass of the celestial body, and <em>r</em> is the distance from its centre.
           </p>
 
-          <p className="note-signature">— Professor X, Dept. of Physics</p>
+          <p className="note-body" style={{ fontStyle: "normal", marginBottom: "10px" }}>
+            The <strong>weight</strong> of an object is the gravitational force acting on it and is given by <strong>W = mg</strong>. Although an object's mass remains unchanged, its weight depends on the gravitational field in which it is located.
+          </p>
+
+          <p className="note-body" style={{ fontStyle: "normal", marginBottom: "6px" }}>
+            On a planet named <strong>Aurelia</strong> in another solar system, the acceleration due to gravity is <strong>two-fifths of the acceleration due to gravity on Earth</strong>, i.e.
+          </p>
+
+          <div className="math-equation">
+            <span style={{ fontSize: "16px", fontWeight: "bold" }}>g<sub>Aurelia</sub> = </span>
+            <div className="fraction">
+              <span className="numerator">2 &middot; g<sub>Earth</sub></span>
+              <span className="denominator">5</span>
+            </div>
+          </div>
+
+          <p className="note-body" style={{ fontStyle: "normal", marginTop: "10px" }}>
+            An astronaut has a mass of <strong>60 kg</strong>. If the acceleration due to gravity on Earth is <strong>9.8 m/s<sup>2</sup></strong>.
+          </p>
         </div>
 
         <div className="question-box">
           <span className="question-label">QUESTION</span>
           <p className="question-text">
-            What is the name of the phenomenon described in the note —
-            the bending of light as it passes from one medium into
-            another?
+            Calculate the sum of the astronaut's weight on Earth and on Aurelia (in Newtons).
           </p>
         </div>
 
@@ -331,7 +324,7 @@ export default function Puzzle2() {
           <div className="answer-row">
             <input
               type="text"
-              placeholder="Enter the physics term..."
+              placeholder="Enter answer in Newtons..."
               value={answer}
               disabled={status !== "playing"}
               onChange={(e) => setAnswer(e.target.value)}
@@ -350,14 +343,10 @@ export default function Puzzle2() {
         </form>
 
         <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
-          </div>
           <div className="hint-box">
             <span>💡</span>
             <p>
-              Re-read the note closely — the professor names the concept
-              indirectly. Think about lenses, light, and bending.
+              Weight = m &times; g. Calculate W<sub>Earth</sub> and W<sub>Aurelia</sub>, then sum them together!
             </p>
           </div>
         </div>
@@ -366,6 +355,9 @@ export default function Puzzle2() {
         <div className="puzzle-tip">
           💡 TIP: Every good physicist reads the fine print twice.
         </div>
+            <button className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
           </>
         )}
       </div>
@@ -374,8 +366,6 @@ export default function Puzzle2() {
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
-            <p>Correct! The answer was {ANSWER}.</p>
-            <p className="points-earned">+{REWARD_POINTS} POINTS</p>
             <button onClick={() => setStatus("hint")}>
               CONTINUE →
             </button>
@@ -401,7 +391,7 @@ export default function Puzzle2() {
               </div>
             )}
 
-            <div className="next-hint-box riddle">
+            <div className="next-hint-box riddle" style={{ whiteSpace: "pre-line" }}>
               <span>💡</span>
               <p>
                 {nextLocHint}

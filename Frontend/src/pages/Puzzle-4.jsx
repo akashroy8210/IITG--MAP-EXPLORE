@@ -76,42 +76,6 @@ export default function Puzzle4() {
     };
   }, []);
 
-  // // Check from backend whether the puzzle has already been completed on load
-  // useEffect(() => {
-  //   let cancelled = false;
-
-  //   async function checkCompletionStatus() {
-  //     try {
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
-  //         { headers: authHeaders() }
-  //       );
-
-  //       if (cancelled) return;
-
-  //       if (res.data?.completed || res.data?.isCompleted) {
-  //         setIsVerified(true);
-  //         const codeFromBackend =
-  //           res.data?.nextCode ||
-  //           res.data?.code ||
-  //           res.data?.sequenceCode ||
-  //           res.data?.locationCode;
-  //         if (codeFromBackend) {
-  //           setNextCode(codeFromBackend);
-  //         }
-  //         setStatus("completed");
-  //       }
-  //     } catch (err) {
-  //       console.warn("Could not check puzzle completion status with server:", err);
-  //     }
-  //   }
-
-  //   checkCompletionStatus();
-  //   return () => {
-  //     cancelled = true;
-  //   };
-  // }, []);
-
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!sequenceCode.trim() || verifying) return;
@@ -290,27 +254,29 @@ export default function Puzzle4() {
           <div className="note-seal">✦</div>
           <h2 className="note-title">At the Library Entrance</h2>
 
-          <p className="note-body">
-            A small keypad is mounted beside the entrance, worn smooth by
-            countless fingers before yours. Above it, a faded sign reads:
-            "Only those who carried the code this far may enter."
-          </p>
         </div>
 
         <div className="question-box">
-          <span className="question-label">ENTER CODE</span>
+          <span className="question-label">QUESTION</span>
           <p className="question-text">
-            Enter the code you were given at the Auditorium to unlock what
-            waits inside the Library.
+            The librarian of Lakshminath Bezbarao library of IITG is arranging books on different shelves. To make it easier to identify the shelves, she creates a special code for each shelf. The code contains a letter, a number, and another letter.
+            <br /><br />
+            The librarian notices that the shelf codes follow a particular pattern:
+            <br />
+            <strong>Z1A, X2D, V6G, T21J, ...?</strong>
+            <br /><br />
+            A student is asked to help the librarian determine the code for the fifth shelf by carefully observing the pattern in the letters and numbers.
+            <br /><br />
+            What should be the code for Shelf 5?
           </p>
         </div>
 
         <form className="answer-section" onSubmit={handleSubmit}>
-          <p className="answer-label">Enter the code:</p>
+          <p className="answer-label">Enter your answer:</p>
           <div className="answer-row">
             <input
               type="text"
-              placeholder="Enter the code..."
+              placeholder="Enter your answer..."
               value={answer}
               disabled={status !== "playing"}
               onChange={(e) => setAnswer(e.target.value)}
@@ -324,19 +290,16 @@ export default function Puzzle4() {
             </button>
           </div>
           {status === "wrong" && (
-            <p className="answer-error">Wrong code. Try again!</p>
+            <p className="answer-error">Wrong answer. Try again!</p>
           )}
         </form>
 
         <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
-          </div>
+
           <div className="hint-box">
             <span>💡</span>
             <p>
-              You were told to carry this code with you from the previous
-              location. Check what you were handed there.
+              Observe the pattern in the first letter, the middle number, and the last letter separately.
             </p>
           </div>
         </div>
@@ -358,7 +321,6 @@ export default function Puzzle4() {
           <div className="result-card">
             <h2>✦ DOOR UNLOCKED ✦</h2>
             <p>The keypad blinks green. You're in.</p>
-            <p className="points-earned">+{10} POINTS</p>
 
             <div className="next-hint-box">
               <span>📚</span>
@@ -397,23 +359,7 @@ export default function Puzzle4() {
               </div>
             )}
 
-            <div className="next-hint-box riddle-story">
-              {/* <p>
-                This is a place where students turn ideas into reality.
-                <br />
-                Clubs meet here. Events are planned here. Cultural
-                activities come alive here.
-                <br />
-                Your next clue lies somewhere inside the New SAC (Student
-                Activity Centre).
-                <br />
-                But finding the building is only the beginning.
-                <br />
-                Find the room that serves as the execution centre for the
-                examination you have already conquered.
-                <br />
-                Find the room.
-              </p> */}
+            <div className="next-hint-box riddle-story" style={{ whiteSpace: "pre-line" }}>
               {nextLocHint}
             </div>
 

@@ -202,11 +202,16 @@ export default function Puzzle5() {
                 >
                   {verifying ? "VERIFYING..." : "VERIFY CODE"}
                 </button>
+
               </div>
               {verifyError && (
                 <p className="answer-error">{verifyError}</p>
               )}
             </form>
+
+            <button type="button" className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
+            </button>
 
   
           </>
@@ -227,9 +232,29 @@ export default function Puzzle5() {
 
         <div className="question-box">
           <span className="question-label">QUESTION</span>
-          <p className="question-text equation">
-            (MA)&sup2; + (CL)&sup2; + (PH)&sup2; = ?
-          </p>
+          <div className="math-equation">
+            <span className="bracket">(</span>
+            <div className="fraction">
+              <span className="numerator">Math - 1</span>
+              <span className="denominator">Math + 1</span>
+            </div>
+            <span className="bracket">)</span>
+            <span className="operator">&bull;</span>
+            <span className="bracket">(</span>
+            <div className="fraction">
+              <span className="numerator">Chemistry + 1</span>
+              <span className="denominator">Chemistry - 1</span>
+            </div>
+            <span className="bracket">)</span>
+            <span className="operator">&bull;</span>
+            <span className="bracket">(</span>
+            <div className="fraction">
+              <span className="numerator">Physics</span>
+              <span className="denominator">Physics + 1</span>
+            </div>
+            <span className="bracket">)</span>
+            <span className="operator">&nbsp;=&nbsp;?</span>
+          </div>
         </div>
 
         <form className="answer-section" onSubmit={handleSubmit}>
@@ -256,19 +281,16 @@ export default function Puzzle5() {
         </form>
 
         <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
-          </div>
+ 
           <div className="hint-box">
             <span>💡</span>
             <p>
-              Each pair of letters is worth a number. Square each one, then
-              add them together.
+              Substitute the values for Math, Chemistry, and Physics into the equation to calculate the final answer.The values are somewhere hidden in the map
             </p>
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => window.close()}>
+        <button type="button" className="back-btn" onClick={() => window.close()}>
           CLOSE WINDOW
         </button>
 

@@ -75,42 +75,6 @@ export default function Puzzle3() {
     };
   }, []);
 
-  // Check from backend whether the puzzle has already been completed on load
-  // useEffect(() => {
-  //   let cancelled = false;
-
-  //   async function checkCompletionStatus() {
-  //     try {
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
-  //         { headers: authHeaders() }
-  //       );
-
-  //       if (cancelled) return;
-
-  //       if (res.data?.completed || res.data?.isCompleted) {
-  //         setIsVerified(true);
-  //         const codeFromBackend =
-  //           res.data?.nextCode ||
-  //           res.data?.code ||
-  //           res.data?.sequenceCode ||
-  //           res.data?.locationCode;
-  //         if (codeFromBackend) {
-  //           setNextCode(codeFromBackend);
-  //         }
-  //         setStatus("completed");
-  //       }
-  //     } catch (err) {
-  //       console.warn("Could not check puzzle completion status with server:", err);
-  //     }
-  //   }
-
-  //   checkCompletionStatus();
-  //   return () => {
-  //     cancelled = true;
-  //   };
-  // }, []);
-
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!sequenceCode.trim() || verifying) return;
@@ -339,9 +303,6 @@ export default function Puzzle3() {
         </form>
 
         <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
-          </div>
           <div className="hint-box">
             <span>💡</span>
             <p>
@@ -367,8 +328,7 @@ export default function Puzzle3() {
         <div className="result-overlay">
           <div className="result-card">
             <h2>✦ QUEST COMPLETE ✦</h2>
-            <p>Correct! { 10} was seated in Seat 3.</p>
-            <p className="points-earned">+{10} POINTS</p>
+     
 
             <div className="next-hint-box">
               <span>🏛️</span>
@@ -408,29 +368,7 @@ export default function Puzzle3() {
               </div>
             )}
 
-            <div className="next-hint-box riddle-story">
-              {/* <p>
-                Last weekend, the football team decided to change their
-                usual practice location.
-                <br />
-                Instead of meeting in the evening, they arrived shortly
-                after noon.
-                <br />
-                Before anyone could begin, someone realized that the
-                equipment was still missing.
-                <br />
-                Rather than wasting time, the captain divided everyone
-                into small groups.
-                <br />
-                After searching for several minutes, they finally found
-                everything near the entrance.
-                <br />
-                Relieved that the problem was solved, the team continued
-                with their practice.
-                <br />
-                Yet nobody noticed that one important clue had been left
-                behind.
-              </p> */}
+            <div className="next-hint-box riddle-story" style={{ whiteSpace: "pre-line" }}>
               {nextLocHint}
             </div>
 

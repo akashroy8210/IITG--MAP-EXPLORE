@@ -168,7 +168,7 @@ export default function InstructionsPage() {
                   <div className="step-info">
                     <h3 className="step-title">SOLVE</h3>
                     <p className="step-desc">
-                      Solve the puzzle correctly and Get clues for the nect Location.
+                      Solve the puzzle correctly and Get clues for the next Location and carry the verification code to the next location.
                     </p>
                   </div>
                 </div>
