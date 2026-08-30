@@ -495,6 +495,61 @@ export default function LeaderboardPage() {
     onDisconnected: () => setSocketConnected(false),
   });
 
+  // Export CSV Functionality
+  const handleExportCSV = useCallback(() => {
+    const dataToExport = studentsProgress.length > 0 ? studentsProgress : leaderboard;
+    if (!dataToExport.length) return;
+
+    const rows = [
+      ["Name", "Username", "User Number", "Game Status", "Started At (IST)", "Last Question Solved At (IST)", "Questions Solved", "Total Questions"]
+    ];
+
+    dataToExport.forEach((s) => {
+      // Find latest question solved timestamp
+      let lastSolvedDate = null;
+      if (s.questions && s.questions.length > 0) {
+        const solvedQs = s.questions.filter((q) => q.solvedAt || q.verifiedAt);
+        if (solvedQs.length > 0) {
+          const timestamps = solvedQs
+            .map((q) => new Date(q.verifiedAt || q.solvedAt).getTime())
+            .filter((t) => !isNaN(t));
+          if (timestamps.length > 0) {
+            lastSolvedDate = new Date(Math.max(...timestamps));
+          }
+        }
+      }
+      if (!lastSolvedDate && s.completedAt) {
+        lastSolvedDate = new Date(s.completedAt);
+      }
+
+      const startedAtFormatted = formatIndianDateTime(s.startedAt);
+      const lastSolvedFormatted = lastSolvedDate ? formatIndianDateTime(lastSolvedDate) : "—";
+      const solvedCount = s.verifiedCount ?? s.solvedCount ?? s.answersSolved ?? 0;
+      const totalCount = s.totalQuestions ?? 0;
+
+      rows.push([
+        `"${(s.name || '').replace(/"/g, '""')}"`,
+        `"${(s.username || '').replace(/"/g, '""')}"`,
+        `"#${s.userNumber || ''}"`,
+        `"${s.gameStatus || ''}"`,
+        `"${startedAtFormatted}"`,
+        `"${lastSolvedFormatted}"`,
+        `"${solvedCount} / ${totalCount}"`,
+        `"${totalCount}"`
+      ]);
+    });
+
+    const csvContent = rows.map((e) => e.join(",")).join("\n");
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leaderboard_students_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [studentsProgress, leaderboard]);
+
   // Derived counts
   const completedCount = leaderboard.filter((s) => s.gameStatus === "completed").length;
   const inProgressCount = leaderboard.filter((s) => s.gameStatus === "in_progress").length;
@@ -543,6 +598,7 @@ export default function LeaderboardPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
+          <NeoButton variant="green" className="neo-btn-sm" onClick={handleExportCSV}>📥 EXPORT CSV</NeoButton>
           <NeoButton variant="yellow" className="neo-btn-sm" onClick={() => fetchLeaderboard()}>↻ REFRESH</NeoButton>
           {activeTab === "leaderboard" && (
             <NeoButton variant={viewMode === "final" ? "black" : "white"} className="neo-btn-sm" onClick={() => setViewMode((v) => (v === "live" ? "final" : "live"))}>
