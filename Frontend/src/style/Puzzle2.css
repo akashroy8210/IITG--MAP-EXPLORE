@@ -340,7 +340,10 @@
 .hint-box {
   display: flex;
   gap: 8px;
-  padding: 12px 14px;
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 
   border: 1px solid #9b6a32;
   background: rgba(120, 75, 30, 0.08);
@@ -484,8 +487,10 @@
 .next-hint-box {
   display: flex;
   gap: 8px;
-  padding: 12px 14px;
-  margin: 6px 0 18px;
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 480px;
+  margin: 6px auto 18px;
   text-align: left;
 
   border: 1px solid #9b6a32;

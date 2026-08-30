@@ -55,11 +55,18 @@ export default function Puzzle2() {
 
     async function checkStatus() {
       try {
+        const stateRes = await axios.get(`${API_BASE_URL}/game/state`, { headers: authHeaders() });
+        if (cancelled) return;
+        
+
         const res = await axios.get(
           `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
           { headers: authHeaders() }
         );
         if (cancelled) return;
+        if (res.data?.status === "location_verified" || res.data?.completed || res.data?.isCompleted) {
+          setIsVerified(true);
+        }
         if (res.data?.completed || res.data?.isCompleted) {
           setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
         }
@@ -76,27 +83,25 @@ export default function Puzzle2() {
     };
   }, []);
 
-  // Check from backend whether the puzzle has already been completed on load
-  useEffect(() => {
-    let cancelled = false;
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!sequenceCode.trim() || verifying) return;
-    const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
-    const prevQuestionId = res1.data.game.currentQuestion.id;
     setVerifying(true);
     setVerifyError("");
-      const currentIdx = res1.data.game.currentStageIndex;
-      const nextIdx = currentIdx + 1;
-      const nextQuestionId = PUZZLE_ID; // JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
-  
     try {
+      const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
+      const currentQuestionId = res1.data?.game?.currentQuestion?.id;
+      const currentIdx = res1.data?.game?.currentStageIndex;
+
+      if (currentQuestionId === PUZZLE_ID) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+
+      const prevQuestionId = currentQuestionId;
+      const nextQuestionId = PUZZLE_ID;
+
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
@@ -107,7 +112,7 @@ export default function Puzzle2() {
         { headers: authHeaders() }
       );
 
-      if (res.data?.correct || res.data?.verified) {
+      if (res.data?.correct || res.data?.verified || res.data?.alreadyVerified) {
         setIsVerified(true);
       } else {
         setVerifyError(
@@ -120,10 +125,8 @@ export default function Puzzle2() {
         err.response?.data?.message || "Failed to verify code with backend. Please try again."
       );
     } finally {
-      
       setVerifying(false);
     }
-    
   }
 
   async function handleSubmit(e) {

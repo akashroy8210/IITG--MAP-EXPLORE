@@ -444,6 +444,95 @@
     inset 0 2px 5px rgba(0, 0, 0, 0.6);
 }
 
+.enter-campus-btn:disabled {
+  opacity: 0.85;
+  cursor: not-allowed;
+  filter: brightness(0.9);
+}
+
+.loading-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner-icon {
+  display: inline-block;
+  animation: pulseSpin 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseSpin {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+/* Loading Overlay when Entering Map */
+.map-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 7, 5, 0.88);
+  backdrop-filter: blur(8px);
+  animation: fadeInOverlay 0.3s ease-out forwards;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 36px 38px;
+  width: min(400px, 88vw);
+  background: linear-gradient(160deg, rgba(38, 27, 19, 0.98), rgba(13, 9, 6, 0.99));
+  border: 2px solid #b88d44;
+  border-radius: 12px;
+  box-shadow:
+    0 0 35px rgba(212, 175, 55, 0.4),
+    0 20px 45px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  color: #f7e3b5;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(212, 175, 55, 0.2);
+  border-top: 4px solid #ffd675;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-card h2 {
+  font-family: 'Press Start 2P', 'Pixelify Sans', cursive, monospace;
+  font-size: 14px;
+  color: #f5c242;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(245, 194, 66, 0.5);
+  margin: 0;
+}
+
+.loading-card p {
+  font-family: 'Georgia', serif;
+  font-size: 13.5px;
+  color: #d8c29d;
+  font-style: italic;
+  margin: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Responsive Rules */
 @media (max-width: 640px) {
   .open-quest-panel {

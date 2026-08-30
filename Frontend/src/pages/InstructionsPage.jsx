@@ -15,6 +15,7 @@ export default function InstructionsPage() {
   const navigate = useNavigate();
   const [opened, setOpened] = useState(false);
   const [studentInfo, setStudentInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
 
 
 
@@ -39,6 +40,8 @@ export default function InstructionsPage() {
   }, [navigate]);
 
   const handleEnterMap = async () => {
+    if (loading) return;
+    setLoading(true);
     try {
       console.log("inentermap");
       const res = await axios.post(
@@ -210,13 +213,36 @@ export default function InstructionsPage() {
               )}
 
               {/* Primary Action Button */}
-              <button className="enter-campus-btn" onClick={handleEnterMap}>
-                <span className="btn-text">⚔ ENTER THE CAMPUS</span>
+              <button
+                className={`enter-campus-btn ${loading ? 'loading' : ''}`}
+                onClick={handleEnterMap}
+                disabled={loading}
+              >
+                <span className="btn-text">
+                  {loading ? (
+                    <span className="loading-spinner-wrap">
+                      <span className="spinner-icon">⏳</span> ENTERING THE MAP...
+                    </span>
+                  ) : (
+                    "⚔ ENTER THE CAMPUS"
+                  )}
+                </span>
               </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Loading Overlay when Entering Map */}
+      {loading && (
+        <div className="map-loading-overlay">
+          <div className="loading-card">
+            <div className="loading-spinner"></div>
+            <h2>ENTERING CAMPUS MAP...</h2>
+            <p>Preparing your quest world, adventurer!</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -60,6 +60,11 @@ export default function Puzzle4() {
           { headers: authHeaders() }
         );
         if (cancelled) return;
+        console.log(res.data);
+        if(res.data?.status === "location_verified"  ) {
+          console.log(res.data?.status);
+          setIsVerified(true);
+        }
         if (res.data?.completed || res.data?.isCompleted) {
           setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
         }
@@ -84,9 +89,16 @@ export default function Puzzle4() {
     setVerifyError("");
       const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
       const prevQuestionId = res1.data.game.currentQuestion.id;
-            const currentIdx = res1.data.game.currentStageIndex;
+      const currentIdx = res1.data.game.currentStageIndex;
       const nextIdx = currentIdx + 1;
       const nextQuestionId = JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
+
+      if(prevQuestionId === PUZZLE_ID) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+
     try {
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
@@ -126,6 +138,7 @@ export default function Puzzle4() {
     const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
     const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
     console.log("questionId", questionId);
+    console.log(PUZZLE_ID);
     setNextLocHint(questionss[0].questions[res1.data.game.currentStageIndex+1].nextLocationHint);
     try {
       const res = await axios.post(
@@ -308,10 +321,7 @@ export default function Puzzle4() {
           CLOSE WINDOW
         </button>
 
-        <div className="puzzle-tip">
-          💡 TIP: Some doors don't need a puzzle solved — just proof you
-          solved the last one.
-        </div>
+
           </>
         )}
       </div>

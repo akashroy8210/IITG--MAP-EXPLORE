@@ -59,9 +59,13 @@ export default function Puzzle3() {
           { headers: authHeaders() }
         );
         if (cancelled) return;
+        console.log("Puzzle status check response:", res.data);
+        if(res.data?.status === "location_verified") {
+          setIsVerified(true);
+        }
         if (res.data?.completed || res.data?.isCompleted) {
           setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
-        }
+        } 
       } catch (err) {
         console.warn("Could not check puzzle status with server:", err);
       } finally {
@@ -88,6 +92,13 @@ export default function Puzzle3() {
       const currentIdx = res1.data.game.currentStageIndex;
       const nextIdx = currentIdx + 1;
       const nextQuestionId = JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
+
+      if(prevQuestionId === PUZZLE_ID) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
@@ -187,6 +198,9 @@ export default function Puzzle3() {
               <span className="code-note">
                 Enter this code at the next location puzzle page.
               </span>
+            </div>
+            <div>
+
             </div>
 
             <button className="back-btn nes-btn" onClick={() => window.close()}>

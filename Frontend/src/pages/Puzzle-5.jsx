@@ -66,7 +66,9 @@ export default function Puzzle5() {
         );
 
         if (cancelled) return;
-
+        if(res.data?.status === "location_verified") {
+          setIsVerified(true);
+        }
         if (res.data?.completed || res.data?.isCompleted) {
           setStatus("image");
         }
@@ -75,7 +77,9 @@ export default function Puzzle5() {
       } finally {
         if (!cancelled) setCheckingStatus(false);
       }
+
     }
+
 
     checkCompletionStatus();
     return () => {
@@ -86,16 +90,21 @@ export default function Puzzle5() {
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!sequenceCode.trim() || verifying) return;
-
-    setVerifying(true);
-    setVerifyError("");
-
-    try {
-      const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
+     const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
       console.log("student_sets_key:", res1);
       const prevQuestionId = res1[0].questions[3]._id;
-     
-      
+    setVerifying(true);
+    setVerifyError("");
+     console.log("prevQuestionId:", prevQuestionId, "PUZZLE_ID:", PUZZLE_ID);
+   if(prevQuestionId === PUZZLE_ID) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+    try {
+ 
+    
+   
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
