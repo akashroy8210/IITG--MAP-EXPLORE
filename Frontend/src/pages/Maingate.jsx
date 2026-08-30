@@ -178,6 +178,13 @@ export default function Maingate() {
               >
                 {status === "checking" ? "CHECKING…" : "UNLOCK THE GATE"}
               </button>
+                          <button
+                type="button"
+                className="back-btn"
+                onClick={() => window.close()}
+              >
+                CLOSE WINDOW
+              </button>
 
               {status === "error" && (
                 <p className="gate-error">
@@ -223,6 +230,10 @@ export default function Maingate() {
                 {completedAt }
               </span>
             </div>
+
+            <button type="button" className="back-btn" onClick={() => window.close()} style={{ marginTop: "20px" }}>
+              CLOSE WINDOW
+            </button>
           </div>
         )}
       </div>

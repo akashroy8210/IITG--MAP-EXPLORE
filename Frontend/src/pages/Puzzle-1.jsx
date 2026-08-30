@@ -10,17 +10,34 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api"
 
 // ---- Puzzle configuration (swap per-location for future Puzzle-2, Puzzle-3 ...) ----
 const PUZZLE_ID = QUESTION_IDS.PUZZLE_1;
-// Verification happens server-side (see handleSubmit) — this is only used
-// to name the object in the "quest complete" message.
-// const ANSWER = "telescope";
-const REWARD_POINTS = 10;
+
 
 
 const PIECES = [
-  { id: 0, location: "Central Library", hint: "Where stories live forever." },
-  { id: 1, location: "Lecture Hall Complex", hint: "Where knowledge is passed down." },
-  { id: 2, location: "Senate Hall", hint: "Where decisions echo." },
-  { id: 3, location: "Brahmaputra Hostel", hint: "Where adventurers rest." },
+  {
+    id: 0,
+    location: "In the garden",
+    hint: "Where stories live forever.",
+    image: "https://res.cloudinary.com/dzusarwvk/image/upload/v1788000690/img-part-1_klha8h.png",
+  },
+  {
+    id: 1,
+    location: "Conference hall backside",
+    hint: "Where knowledge is passed down.",
+    image: "https://res.cloudinary.com/dzusarwvk/image/upload/v1788000694/img-part-2_jkbwav.png",
+  },
+  {
+    id: 2,
+    location: "Athletic ground",
+    hint: "Where decisions echo.",
+    image: "https://res.cloudinary.com/dzusarwvk/image/upload/v1788000691/img-part-3_wewpna.png",
+  },
+  {
+    id: 3,
+    location: "Admin Building",
+    hint: "Where adventurers rest.",
+    image: "https://res.cloudinary.com/dzusarwvk/image/upload/v1788000692/img-part-4_wj4bke.png",
+  },
 ];
 
 // background-position for each quadrant of the 200%-sized puzzle image
@@ -105,30 +122,6 @@ export default function Puzzle1() {
   // still show up as found and render their image here.
   useEffect( () => {
     let cancelled = false;
-
-    // async function fetchProgress() {
-    //   try {
-    //     const res = await axios.get(
-    //       `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/progress`,
-    //       { headers: authHeaders() }
-    //     );
-    //     const collectedPieceIds = res.data?.collectedPieceIds || [];
-    //     if (cancelled || !Array.isArray(collectedPieceIds)) return;
-
-    //     setCollected((prev) => {
-    //       const next = PIECES.map(
-    //         (p) => prev[p.id] || collectedPieceIds.includes(p.id)
-    //       );
-    //       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    //       return next;
-    //     });
-    //   } catch (err) {
-    //     // Backend not available yet — keep using whatever is in localStorage.
-    //     console.warn("Could not fetch puzzle progress from server:", err);
-    //   }
-    // }
-
-    //fetchProgress();
     return () => {
       cancelled = true;
     };
@@ -163,24 +156,13 @@ export default function Puzzle1() {
     window.clearTimeout(collectPiece._t);
     collectPiece._t = window.setTimeout(() => setToast(null), 3000);
 
-    // Persist the collected piece server-side so it's remembered across
-    // locations/sessions. UI already updated above — this just syncs it.
-    // axios
-    //   .post(
-    //     `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/collect`,
-    //     { pieceId },
-    //     { headers: authHeaders() }
-    //   )
-    //   .catch((err) => {
-    //     console.warn("Could not save collected piece to server:", err);
-    //   });
   }
 
   async function handleSubmit(e) {
     
     e.preventDefault();
 
-    if (!allCollected || status !== "playing" || !answer.trim()) return;
+    if (status !== "playing" || !answer.trim()) return;
 
     const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
     const questions = JSON.parse(localStorage.getItem("student_sets_key"))
@@ -299,8 +281,9 @@ export default function Puzzle1() {
                       style={
                         found
                           ? {
-                              backgroundImage: `url(${puzzleImage})`,
-                              backgroundPosition: PIECE_POSITION[piece.id],
+                              backgroundImage: `url(${piece.image})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
                             }
                           : undefined
                       }
@@ -346,22 +329,20 @@ export default function Puzzle1() {
 
             <form className="answer-section" onSubmit={handleSubmit}>
               <p className="answer-label">
-                {allCollected
-                  ? "Think you know the answer?"
-                  : "Collect all 4 pieces to unlock the answer box."}
+                Think you know the answer? Enter your guess below:
               </p>
               <div className="answer-row">
                 <input
                   type="text" className="nes-input is-dark"
                   placeholder="Enter the name of the object..."
                   value={answer}
-                  disabled={!allCollected || status !== "playing"}
+                  disabled={status !== "playing"}
                   onChange={(e) => setAnswer(e.target.value)}
                 />
                 <button
                   type="submit"
-                  className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
-                  disabled={!allCollected || status !== "playing"}
+                  className={`submit-btn ${status === "wrong" ? "shake" : ""}`}
+                  disabled={status !== "playing"}
                 >
                   {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
                 </button>
@@ -372,9 +353,6 @@ export default function Puzzle1() {
 
             </form>
             <div className="puzzle-footer">
-              <div className="reward-badge">
-                <span>⭐</span> REWARD &nbsp;<strong>{REWARD_POINTS} POINTS</strong>
-              </div>
               <div className="hint-box">
                 <span>💡</span>
                 <p>
@@ -412,7 +390,6 @@ export default function Puzzle1() {
           <div className="result-card nes-container is-dark">
             <h2>✦ QUEST COMPLETE ✦</h2>
             <p>You correctly identified the Answer!</p>
-            <p className="points-earned">+{REWARD_POINTS} POINTS</p>
 
             <div className="code-display">
               <span className="code-label">YOUR NEXT LOCATION CODE</span>
@@ -422,7 +399,7 @@ export default function Puzzle1() {
               </span>
             </div>
 
-            <div className="next-hint-box">
+            <div className="next-hint-box" style={{whiteSpace: "pre-line"}}>
               <span>💡</span>
               <p>{nextLocHint}</p>
             </div>

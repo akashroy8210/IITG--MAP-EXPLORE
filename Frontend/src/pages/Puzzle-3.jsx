@@ -59,9 +59,13 @@ export default function Puzzle3() {
           { headers: authHeaders() }
         );
         if (cancelled) return;
+        console.log("Puzzle status check response:", res.data);
+        if(res.data?.status === "location_verified") {
+          setIsVerified(true);
+        }
         if (res.data?.completed || res.data?.isCompleted) {
           setAlreadySolvedCode(res.data?.verificationCode || res.data?.code || null);
-        }
+        } 
       } catch (err) {
         console.warn("Could not check puzzle status with server:", err);
       } finally {
@@ -74,42 +78,6 @@ export default function Puzzle3() {
       cancelled = true;
     };
   }, []);
-
-  // Check from backend whether the puzzle has already been completed on load
-  // useEffect(() => {
-  //   let cancelled = false;
-
-  //   async function checkCompletionStatus() {
-  //     try {
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}/student/puzzles/${PUZZLE_ID}/status`,
-  //         { headers: authHeaders() }
-  //       );
-
-  //       if (cancelled) return;
-
-  //       if (res.data?.completed || res.data?.isCompleted) {
-  //         setIsVerified(true);
-  //         const codeFromBackend =
-  //           res.data?.nextCode ||
-  //           res.data?.code ||
-  //           res.data?.sequenceCode ||
-  //           res.data?.locationCode;
-  //         if (codeFromBackend) {
-  //           setNextCode(codeFromBackend);
-  //         }
-  //         setStatus("completed");
-  //       }
-  //     } catch (err) {
-  //       console.warn("Could not check puzzle completion status with server:", err);
-  //     }
-  //   }
-
-  //   checkCompletionStatus();
-  //   return () => {
-  //     cancelled = true;
-  //   };
-  // }, []);
 
   async function handleVerifyCode(e) {
     e.preventDefault();
@@ -124,6 +92,13 @@ export default function Puzzle3() {
       const currentIdx = res1.data.game.currentStageIndex;
       const nextIdx = currentIdx + 1;
       const nextQuestionId = JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
+
+      if(prevQuestionId === PUZZLE_ID) {
+        setIsVerified(true);
+        setVerifying(false);
+        return;
+      }
+
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
@@ -223,6 +198,9 @@ export default function Puzzle3() {
               <span className="code-note">
                 Enter this code at the next location puzzle page.
               </span>
+            </div>
+            <div>
+
             </div>
 
             <button className="back-btn nes-btn" onClick={() => window.close()}>
@@ -339,9 +317,6 @@ export default function Puzzle3() {
         </form>
 
         <div className="puzzle-footer">
-          <div className="reward-badge">
-            <span>⭐</span> REWARD &nbsp;<strong>{10} POINTS</strong>
-          </div>
           <div className="hint-box">
             <span>💡</span>
             <p>
@@ -367,8 +342,7 @@ export default function Puzzle3() {
         <div className="result-overlay">
           <div className="result-card nes-container is-dark">
             <h2>✦ QUEST COMPLETE ✦</h2>
-            <p>Correct! { 10} was seated in Seat 3.</p>
-            <p className="points-earned">+{10} POINTS</p>
+     
 
             <div className="next-hint-box">
               <span>🏛️</span>
@@ -408,29 +382,7 @@ export default function Puzzle3() {
               </div>
             )}
 
-            <div className="next-hint-box riddle-story">
-              {/* <p>
-                Last weekend, the football team decided to change their
-                usual practice location.
-                <br />
-                Instead of meeting in the evening, they arrived shortly
-                after noon.
-                <br />
-                Before anyone could begin, someone realized that the
-                equipment was still missing.
-                <br />
-                Rather than wasting time, the captain divided everyone
-                into small groups.
-                <br />
-                After searching for several minutes, they finally found
-                everything near the entrance.
-                <br />
-                Relieved that the problem was solved, the team continued
-                with their practice.
-                <br />
-                Yet nobody noticed that one important clue had been left
-                behind.
-              </p> */}
+            <div className="next-hint-box riddle-story" style={{ whiteSpace: "pre-line" }}>
               {nextLocHint}
             </div>
 

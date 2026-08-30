@@ -44,12 +44,12 @@ function App() {
           {/* ── Student Game Routes (Unchanged) ── */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/Instructions" element={<InstructionsPage />} />
-          <Route path="/puzzle-1" element={<Puzzle1 />} />
-          <Route path="/puzzle-2" element={<Puzzle2 />} />
-          <Route path="/puzzle-3" element={<Puzzle3 />} />
-          <Route path="/puzzle-4" element={<Puzzle4 />} />
-          <Route path="/puzzle-5" element={<Puzzle5 />} />
-          <Route path="/maingate" element={<Maingate />} />
+          <Route path="/a7Kx92LmQ4vT8pNz3Rj5" element={<Puzzle1 />} />
+          <Route path="/B6wY1cF9sH2mX7qL4dP8" element={<Puzzle2 />} />
+          <Route path="/k9Vt3NqR7xA5mZ2wC8eL" element={<Puzzle3 />} />
+          <Route path="/P4nX8jM2vQ7sL5rT9yK6" element={<Puzzle4 />} />
+          <Route path="/z8Hq4Wm7Bv2Nf9Xc5Jr3" element={<Puzzle5 />} />
+          <Route path="/R5yL9pC2kV8nT4xM7qA6" element={<Maingate />} />
           <Route path="*" element={<LandingPage />} />
           {/* ── Admin Panel Routes ── */}
           <Route path="/admin/login" element={<LoginPage />} />

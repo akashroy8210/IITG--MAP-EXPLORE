@@ -36,10 +36,10 @@ const DEFAULT_QUESTION_IDS = {
 
 const STARTING_WORD_TO_PUZZLE = {
   find: "PUZZLE_1",
-  ah: "PUZZLE_2",
+  calculate: "PUZZLE_2",
   whispers: "PUZZLE_3",
-  enter: "PUZZLE_4",
-  ma: "PUZZLE_5",
+  what: "PUZZLE_4",
+  solve: "PUZZLE_5",
 };
 
 
