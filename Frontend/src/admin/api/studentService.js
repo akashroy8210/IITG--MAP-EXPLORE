@@ -11,6 +11,11 @@ export const studentService = {
     return response.data;
   },
 
+  async getStudentsProgress() {
+    const response = await apiClient.get('/admin/students-progress');
+    return response.data;
+  },
+
   async getStudent(id) {
     const response = await apiClient.get(`/admin/students/${id}`);
     return response.data;

@@ -19,6 +19,26 @@ function formatDuration(seconds) {
   return parts.join(" ");
 }
 
+/**
+ * Formats a Date/Timestamp into standard Indian Format (en-IN, IST)
+ * Example: 30/08/2026, 02:30:45 pm
+ */
+function formatIndianDateTime(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+}
+
 function rankLabel(rank) {
   if (rank === 1) return "🥇";
   if (rank === 2) return "🥈";
@@ -33,7 +53,7 @@ function getRankBg(rank) {
   return { background: "var(--neo-white)", border: "var(--neo-border-sm)" };
 }
 
-// ─── Question Progress Component ──────────────────────────────────────────────
+// ─── Question Progress Bar Component ──────────────────────────────────────────
 
 function QuestionProgressBar({ solved, total, compact = false }) {
   if (total == null || total === 0) {
@@ -179,7 +199,7 @@ function LiveEventFeed({ events }) {
   );
 }
 
-// ─── Podium Components ────────────────────────────────────────────────────────
+// ─── Podium Component ─────────────────────────────────────────────────────────
 
 function PodiumCard({ student, medal, height, color }) {
   if (!student) return null;
@@ -215,10 +235,194 @@ function Podium({ top3 }) {
   );
 }
 
+// ─── Student Detail Drawer Modal ──────────────────────────────────────────────
+
+function StudentDetailDrawer({ student, onClose }) {
+  if (!student) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        justifyContent: "flex-end",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 600,
+          background: "var(--neo-white)",
+          height: "100%",
+          boxShadow: "-4px 0 0 var(--neo-black)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: 20,
+            background: "var(--neo-yellow)",
+            borderBottom: "var(--neo-border)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>STUDENT TIMELINE DETAILS</span>
+            <h3 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 900, textTransform: "uppercase" }}>
+              {student.name}
+            </h3>
+            <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>
+              @{student.username} · #{student.userNumber}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "6px 14px",
+              background: "var(--neo-black)",
+              color: "#fff",
+              border: "var(--neo-border-sm)",
+              fontFamily: "var(--font-heading)",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            ✕ CLOSE
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: 20, overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Game Timestamps Card */}
+          <div
+            style={{
+              padding: 16,
+              background: "var(--neo-surface)",
+              border: "var(--neo-border)",
+              boxShadow: "var(--neo-shadow-sm)",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase" }}>🚀 GAME START TIME</div>
+              <div style={{ fontSize: 13, fontWeight: 800, marginTop: 2, color: "var(--neo-black)" }}>
+                {formatIndianDateTime(student.startedAt)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase" }}>🏁 GAME END TIME</div>
+              <div style={{ fontSize: 13, fontWeight: 800, marginTop: 2, color: student.completedAt ? "var(--neo-green)" : "#d97706" }}>
+                {student.completedAt ? formatIndianDateTime(student.completedAt) : student.gameStatus === "in_progress" ? "⏳ In Progress" : "💤 Not Started"}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase" }}>🗺️ ASSIGNED MAP</div>
+              <div style={{ fontSize: 12, fontWeight: 800, marginTop: 2 }}>{student.map?.name || "—"}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase" }}>🔢 QUESTION SET</div>
+              <div style={{ fontSize: 12, fontWeight: 800, marginTop: 2 }}>{student.setsKey || "—"}</div>
+            </div>
+          </div>
+
+          {/* Question Breakdown Timeline */}
+          <div>
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 900, textTransform: "uppercase", marginBottom: 10 }}>
+              📋 QUESTION-BY-QUESTION SOLVE TIMELINE
+            </div>
+
+            {(!student.questions || !student.questions.length) ? (
+              <div style={{ padding: 20, textAlign: "center", fontWeight: 700, color: "var(--neo-gray)", border: "var(--neo-border-sm)" }}>
+                No question progress data recorded yet.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {student.questions.map((q) => {
+                  const isVerified = q.status === "location_verified";
+                  const isSolved = q.status === "answer_solved" || isVerified;
+
+                  return (
+                    <div
+                      key={q.questionId}
+                      style={{
+                        padding: 14,
+                        background: isVerified ? "#e6fcf5" : isSolved ? "#fdf8e6" : "var(--neo-white)",
+                        border: "var(--neo-border)",
+                        boxShadow: "var(--neo-shadow-sm)",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                        <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 13, textTransform: "uppercase" }}>
+                          Q{q.sequence}. {q.questionText}
+                        </span>
+                        <span
+                          style={{
+                            padding: "2px 6px",
+                            fontSize: 9,
+                            fontFamily: "var(--font-heading)",
+                            fontWeight: 800,
+                            border: "1.5px solid var(--neo-black)",
+                            background: isVerified ? "var(--neo-green)" : isSolved ? "var(--neo-yellow)" : "var(--neo-gray-light)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {isVerified ? "VERIFIED ✅" : isSolved ? "SOLVED 🟡" : "UNSOLVED ⚪"}
+                        </span>
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11, fontWeight: 700, color: "var(--neo-gray)" }}>
+                        <div>
+                          <span style={{ color: "var(--neo-black)" }}>Answer Solved At: </span>
+                          <span style={{ color: q.solvedAt ? "var(--neo-purple)" : "inherit", fontWeight: 800 }}>
+                            {formatIndianDateTime(q.solvedAt)}
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ color: "var(--neo-black)" }}>Location Verified At: </span>
+                          <span style={{ color: q.verifiedAt ? "var(--neo-green)" : "inherit", fontWeight: 800 }}>
+                            {formatIndianDateTime(q.verifiedAt)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {(q.hintsUsed || q.answerAttemptsCount > 0 || q.codeAttemptsCount > 0) && (
+                        <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px dashed #ccc", fontSize: 10, fontWeight: 700, display: "flex", gap: 12 }}>
+                          {q.hintsUsed && <span style={{ color: "#dc2626" }}>💡 Hint Used</span>}
+                          {q.answerAttemptsCount > 0 && <span>Answer Attempts: {q.answerAttemptsCount}</span>}
+                          {q.codeAttemptsCount > 0 && <span>Code Attempts: {q.codeAttemptsCount}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page Component ──────────────────────────────────────────────────────
 
 export default function LeaderboardPage() {
+  const [activeTab, setActiveTab] = useState("leaderboard"); // "leaderboard" | "progress"
   const [leaderboard, setLeaderboard] = useState([]);
+  const [studentsProgress, setStudentsProgress] = useState([]);
   const [allCount, setAllCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -228,6 +432,8 @@ export default function LeaderboardPage() {
   const [socketConnected, setSocketConnected] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
   const [tick, setTick] = useState(Date.now());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const { flashedIds, flash } = useFlash(2500);
 
@@ -237,14 +443,19 @@ export default function LeaderboardPage() {
     return () => clearInterval(id);
   }, []);
 
-  // Fetch leaderboard data from backend API endpoint
+  // Fetch leaderboard data
   const fetchLeaderboard = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
       setError("");
-      const res = await studentService.getLeaderboard();
-      setLeaderboard(res.leaderboard || []);
-      setAllCount(res.allStudentsCount || 0);
+      const [lbRes, progRes] = await Promise.all([
+        studentService.getLeaderboard().catch(() => ({ leaderboard: [] })),
+        studentService.getStudentsProgress().catch(() => ({ students: [] })),
+      ]);
+
+      setLeaderboard(lbRes.leaderboard || []);
+      setAllCount(lbRes.allStudentsCount || 0);
+      setStudentsProgress(progRes.students || []);
       setLastRefreshed(new Date());
     } catch {
       setError("Failed to load leaderboard data.");
@@ -255,7 +466,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => { fetchLeaderboard(); }, [fetchLeaderboard]);
 
-  // Socket event listener: re-fetch instantly when any event occurs
+  // Socket event listener
   const handleSocketEvent = useCallback((event, payload) => {
     fetchLeaderboard(true);
     if (payload?.userId) flash(String(payload.userId));
@@ -284,7 +495,16 @@ export default function LeaderboardPage() {
   const top3 = leaderboard.filter((s) => s.gameStatus === "completed").slice(0, 3);
   const showPodium = viewMode === "final" && top3.length > 0;
 
-  const filtered = gameFilter === "all" ? leaderboard : leaderboard.filter((s) => s.gameStatus === gameFilter);
+  // Filtering for Leaderboard Tab
+  const filteredLeaderboard = gameFilter === "all" ? leaderboard : leaderboard.filter((s) => s.gameStatus === gameFilter);
+
+  // Filtering for Student Progress Tab
+  const filteredProgress = studentsProgress.filter((s) => {
+    const matchesFilter = gameFilter === "all" || s.gameStatus === gameFilter;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || (s.name && s.name.toLowerCase().includes(q)) || (s.username && s.username.toLowerCase().includes(q)) || String(s.userNumber).includes(q);
+    return matchesFilter && matchesSearch;
+  });
 
   const TH = { background: "var(--neo-yellow)", color: "var(--neo-black)", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.8px", padding: "12px 13px", borderBottom: "var(--neo-border)", borderRight: "2px solid var(--neo-black)", textAlign: "left", whiteSpace: "nowrap" };
   const TD = { padding: "10px 13px", borderBottom: "2px solid var(--neo-black)", borderRight: "2px solid #ddd", fontWeight: 600, verticalAlign: "middle" };
@@ -296,11 +516,11 @@ export default function LeaderboardPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 24, fontWeight: 900, textTransform: "uppercase", margin: 0 }}>🏆 GAME LEADERBOARD</h2>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 24, fontWeight: 900, textTransform: "uppercase", margin: 0 }}>🏆 GAME LEADERBOARD & STUDENT PROGRESS</h2>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--neo-gray)", margin: "4px 0 0", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span>Live student rankings — real-time WebSocket updates</span>
+            <span>Live student rankings — question timestamps in Indian Format (en-IN)</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", border: "2px solid var(--neo-black)", fontWeight: 800, fontSize: 11, background: socketConnected ? "var(--neo-green)" : "var(--neo-pink)", color: socketConnected ? "var(--neo-black)" : "#fff" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor", display: "inline-block", ...(socketConnected ? { animation: "pulse 1.5s infinite" } : {}) }} />
               {socketConnected ? "SOCKET LIVE" : "SOCKET OFFLINE"}
@@ -310,10 +530,50 @@ export default function LeaderboardPage() {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <NeoButton variant="yellow" className="neo-btn-sm" onClick={() => fetchLeaderboard()}>↻ REFRESH</NeoButton>
-          <NeoButton variant={viewMode === "final" ? "black" : "white"} className="neo-btn-sm" onClick={() => setViewMode((v) => (v === "live" ? "final" : "live"))}>
-            {viewMode === "final" ? "🎬 FINAL VIEW" : "📡 LIVE VIEW"}
-          </NeoButton>
+          {activeTab === "leaderboard" && (
+            <NeoButton variant={viewMode === "final" ? "black" : "white"} className="neo-btn-sm" onClick={() => setViewMode((v) => (v === "live" ? "final" : "live"))}>
+              {viewMode === "final" ? "🎬 FINAL VIEW" : "📡 LIVE VIEW"}
+            </NeoButton>
+          )}
         </div>
+      </div>
+
+      {/* Main Navigation Tabs */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, borderBottom: "var(--neo-border)", paddingBottom: 10 }}>
+        <button
+          onClick={() => setActiveTab("leaderboard")}
+          style={{
+            padding: "10px 20px",
+            fontFamily: "var(--font-heading)",
+            fontWeight: 900,
+            fontSize: 13,
+            textTransform: "uppercase",
+            border: "var(--neo-border)",
+            boxShadow: activeTab === "leaderboard" ? "var(--neo-shadow-sm)" : "none",
+            background: activeTab === "leaderboard" ? "var(--neo-yellow)" : "var(--neo-white)",
+            color: "var(--neo-black)",
+            cursor: "pointer",
+          }}
+        >
+          🏆 LEADERBOARD RANKINGS
+        </button>
+        <button
+          onClick={() => setActiveTab("progress")}
+          style={{
+            padding: "10px 20px",
+            fontFamily: "var(--font-heading)",
+            fontWeight: 900,
+            fontSize: 13,
+            textTransform: "uppercase",
+            border: "var(--neo-border)",
+            boxShadow: activeTab === "progress" ? "var(--neo-shadow-sm)" : "none",
+            background: activeTab === "progress" ? "var(--neo-purple)" : "var(--neo-white)",
+            color: activeTab === "progress" ? "#fff" : "var(--neo-black)",
+            cursor: "pointer",
+          }}
+        >
+          📊 STUDENT QUESTION PROGRESS
+        </button>
       </div>
 
       {/* KPI Cards */}
@@ -331,30 +591,207 @@ export default function LeaderboardPage() {
         ))}
       </div>
 
-      {/* Main Grid: Table + Live Event Feed */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 18, alignItems: "start", marginBottom: 24 }}>
+      {/* ─── TAB 1: LEADERBOARD RANKINGS ─── */}
+      {activeTab === "leaderboard" && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 18, alignItems: "start", marginBottom: 24 }}>
+            {/* Table Container */}
+            <div className="neo-card" style={{ padding: 0, overflow: "hidden" }}>
+              <div style={{ padding: "12px 16px", borderBottom: "var(--neo-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", background: "var(--neo-white)" }}>
+                <div>
+                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 13, textTransform: "uppercase" }}>
+                    {viewMode === "final" ? "📋 FINAL RANKINGS" : "📡 LIVE RANKINGS"}
+                  </span>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--neo-gray)", marginTop: 2 }}>
+                    Click any student to view detailed question solve timeline
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {["all", "in_progress", "completed"].map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setGameFilter(f)}
+                      style={{
+                        padding: "4px 10px",
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 800,
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        border: "var(--neo-border-sm)",
+                        cursor: "pointer",
+                        background: gameFilter === f ? "var(--neo-purple)" : "var(--neo-white)",
+                        color: gameFilter === f ? "#fff" : "var(--neo-black)",
+                        boxShadow: "var(--neo-shadow-sm)",
+                      }}
+                    >
+                      {f === "all" ? "ALL" : f === "in_progress" ? "IN PROG" : "DONE"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-        {/* Table Container */}
-        <div className="neo-card" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", borderBottom: "var(--neo-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", background: "var(--neo-white)" }}>
-            <div>
-              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 13, textTransform: "uppercase" }}>
-                {viewMode === "final" ? "📋 FINAL RANKINGS" : "📡 LIVE RANKINGS"}
-              </span>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--neo-gray)", marginTop: 2 }}>
-                Sorted by Completion Status → Questions Solved → Adjusted Time
+              {loading ? (
+                <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>⏳ Loading leaderboard data…</div>
+              ) : error ? (
+                <div style={{ padding: 16, background: "var(--neo-pink)", color: "#fff", fontWeight: 800 }}>⚠️ {error}</div>
+              ) : !filteredLeaderboard.length ? (
+                <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>No active participants found.</div>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        {["#", "STUDENT", "MAP", "STATUS", "QUESTIONS SOLVED", "⏱ LIVE TIMER", "PENALTY", "STARTED"].map((h) => (
+                          <th key={h} style={TH}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLeaderboard.map((s) => {
+                        const done = s.gameStatus === "completed";
+                        const ip = s.gameStatus === "in_progress";
+                        const flashed = flashedIds.has(String(s._id));
+                        const bg = flashed ? "#bbf7d0" : done ? "#e6fcf5" : ip ? "#fdf8e6" : "var(--neo-white)";
+                        const matchingProg = studentsProgress.find((p) => String(p._id) === String(s._id));
+
+                        return (
+                          <tr
+                            key={s._id}
+                            onClick={() => setSelectedStudent(matchingProg || s)}
+                            style={{ background: bg, transition: "background 0.6s ease", cursor: "pointer" }}
+                          >
+                            <td style={{ ...TD, fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: s.rank <= 3 ? 20 : 14, textAlign: "center", minWidth: 48 }}>
+                              {rankLabel(s.rank)}
+                            </td>
+                            <td style={{ ...TD, whiteSpace: "nowrap" }}>
+                              <div style={{ fontWeight: 900, fontSize: 14 }}>{s.name}</div>
+                              <div style={{ fontSize: 10, color: "var(--neo-gray)", fontWeight: 600 }}>@{s.username} · #{s.userNumber}</div>
+                            </td>
+                            <td style={{ ...TD, fontSize: 12, whiteSpace: "nowrap" }}>{s.map?.name || "—"}</td>
+                            <td style={{ ...TD, whiteSpace: "nowrap" }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 7px", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 10, textTransform: "uppercase", border: "2px solid var(--neo-black)", boxShadow: "2px 2px 0 var(--neo-black)", background: done ? "var(--neo-green)" : ip ? "var(--neo-yellow)" : "var(--neo-gray-light)", whiteSpace: "nowrap" }}>
+                                {ip && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", animation: "pulse 1s infinite", flexShrink: 0 }} />}
+                                {done ? "✅ DONE" : ip ? "IN PROG" : "WAITING"}
+                              </span>
+                            </td>
+                            <td style={{ ...TD, minWidth: 145 }}>
+                              <QuestionProgressBar solved={s.answersSolved ?? 0} total={s.totalQuestions} />
+                            </td>
+                            <td style={{ ...TD, whiteSpace: "nowrap" }}>
+                              <LiveTimer student={s} tick={tick} />
+                            </td>
+                            <td style={{ ...TD, whiteSpace: "nowrap", color: (s.totalHintPenaltySeconds || 0) > 0 ? "#dc2626" : "var(--neo-gray)", fontWeight: 800, fontSize: 12 }}>
+                              {(s.totalHintPenaltySeconds || 0) > 0 ? "+" + s.totalHintPenaltySeconds + "s" : "—"}
+                            </td>
+                            <td style={{ ...TD, fontSize: 11, color: "var(--neo-gray)", whiteSpace: "nowrap" }}>
+                              {formatIndianDateTime(s.startedAt)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {!loading && !error && (
+                <div style={{ padding: "7px 12px", borderTop: "2px solid var(--neo-black)", display: "flex", gap: 12, flexWrap: "wrap", fontSize: 10, fontWeight: 700, background: "var(--neo-surface)" }}>
+                  {[["#e6fcf5", "Completed"], ["#fdf8e6", "In Progress"], ["#bbf7d0", "Live Flash"]].map(([bg, lbl]) => (
+                    <span key={lbl} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ display: "inline-block", width: 11, height: 11, background: bg, border: "2px solid var(--neo-black)" }} />
+                      {lbl}
+                    </span>
+                  ))}
+                  <span style={{ color: "var(--neo-gray)", marginLeft: 4 }}>Click any row to open student question timeline!</span>
+                </div>
+              )}
+            </div>
+
+            {/* Live Event Feed Sidebar */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="neo-card" style={{ padding: 0, overflow: "hidden" }}>
+                <div style={{ padding: "9px 13px", borderBottom: "var(--neo-border)", background: "var(--neo-black)", color: "#fff" }}>
+                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 12, textTransform: "uppercase" }}>📡 LIVE EVENTS</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, opacity: 0.6, marginTop: 1 }}>Real-time game activity stream</div>
+                </div>
+                <div style={{ padding: 9 }}>
+                  <LiveEventFeed events={liveEvents} />
+                </div>
+              </div>
+
+              <div className="neo-card neo-card-dark" style={{ padding: 13 }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 10, textTransform: "uppercase", marginBottom: 9, color: "var(--neo-yellow)" }}>⚡ QUICK STATS</div>
+                {[
+                  ["Events Logged", liveEvents.length],
+                  ["Active Participants", totalStarted],
+                  ["Completion Rate", allCount > 0 ? Math.round((completedCount / allCount) * 100) + "%" : "—"],
+                  ["Real-time Mode", "WebSocket Push"],
+                ].map(([l, v]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.1)", color: "#fff" }}>
+                    <span style={{ opacity: 0.6 }}>{l}</span>
+                    <span style={{ color: "var(--neo-yellow)" }}>{v}</span>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+
+          {/* Final Podium */}
+          {showPodium && (
+            <div className="bento-grid" style={{ marginBottom: 24 }}>
+              <BentoCard title="🏆 FINAL PODIUM — TOP FINISHERS" subtitle="Ranked by questions solved then adjusted time" span="bento-span-12" variant="yellow">
+                <Podium top3={top3} />
+              </BentoCard>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ─── TAB 2: STUDENT QUESTION PROGRESS ─── */}
+      {activeTab === "progress" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Filters & Search */}
+          <div
+            style={{
+              padding: 16,
+              background: "var(--neo-white)",
+              border: "var(--neo-border)",
+              boxShadow: "var(--neo-shadow-sm)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flex: 1, minWidth: 280 }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 12 }}>🔍 SEARCH:</span>
+              <input
+                type="text"
+                placeholder="Search student name, username, or #..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  border: "var(--neo-border-sm)",
+                  fontFamily: "inherit",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flex: 1,
+                  background: "var(--neo-surface)",
+                }}
+              />
+            </div>
             <div style={{ display: "flex", gap: 6 }}>
-              {["all", "in_progress", "completed"].map((f) => (
+              {["all", "in_progress", "completed", "not_started"].map((f) => (
                 <button
                   key={f}
                   onClick={() => setGameFilter(f)}
                   style={{
-                    padding: "4px 10px",
+                    padding: "6px 12px",
                     fontFamily: "var(--font-heading)",
                     fontWeight: 800,
-                    fontSize: 10,
+                    fontSize: 11,
                     textTransform: "uppercase",
                     border: "var(--neo-border-sm)",
                     cursor: "pointer",
@@ -363,185 +800,163 @@ export default function LeaderboardPage() {
                     boxShadow: "var(--neo-shadow-sm)",
                   }}
                 >
-                  {f === "all" ? "ALL" : f === "in_progress" ? "IN PROG" : "DONE"}
+                  {f === "all" ? "ALL" : f === "in_progress" ? "IN PROG" : f === "completed" ? "DONE" : "WAITING"}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Student Progress Cards Grid */}
           {loading ? (
-            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>⏳ Loading leaderboard data…</div>
-          ) : error ? (
-            <div style={{ padding: 16, background: "var(--neo-pink)", color: "#fff", fontWeight: 800 }}>⚠️ {error}</div>
-          ) : !filtered.length ? (
-            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>No active participants found.</div>
+            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>⏳ Loading student progress data…</div>
+          ) : !filteredProgress.length ? (
+            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>No matching student progress found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    {["#", "STUDENT", "MAP", "STATUS", "QUESTIONS SOLVED", "⏱ LIVE TIMER", "PENALTY", "STARTED"].map((h) => (
-                      <th key={h} style={TH}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((s) => {
-                    const done = s.gameStatus === "completed";
-                    const ip = s.gameStatus === "in_progress";
-                    const flashed = flashedIds.has(String(s._id));
-                    const bg = flashed ? "#bbf7d0" : done ? "#e6fcf5" : ip ? "#fdf8e6" : "var(--neo-white)";
-                    return (
-                      <tr key={s._id} style={{ background: bg, transition: "background 0.6s ease" }}>
-                        <td style={{ ...TD, fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: s.rank <= 3 ? 20 : 14, textAlign: "center", minWidth: 48 }}>
-                          {rankLabel(s.rank)}
-                        </td>
-                        <td style={{ ...TD, whiteSpace: "nowrap" }}>
-                          <div style={{ fontWeight: 900, fontSize: 14 }}>{s.name}</div>
-                          <div style={{ fontSize: 10, color: "var(--neo-gray)", fontWeight: 600 }}>@{s.username} · #{s.userNumber}</div>
-                        </td>
-                        <td style={{ ...TD, fontSize: 12, whiteSpace: "nowrap" }}>{s.map?.name || "—"}</td>
-                        <td style={{ ...TD, whiteSpace: "nowrap" }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 7px", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 10, textTransform: "uppercase", border: "2px solid var(--neo-black)", boxShadow: "2px 2px 0 var(--neo-black)", background: done ? "var(--neo-green)" : ip ? "var(--neo-yellow)" : "var(--neo-gray-light)", whiteSpace: "nowrap" }}>
-                            {ip && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", animation: "pulse 1s infinite", flexShrink: 0 }} />}
-                            {done ? "✅ DONE" : ip ? "IN PROG" : "WAITING"}
-                          </span>
-                        </td>
-                        {/* Questions Solved Progress Bar */}
-                        <td style={{ ...TD, minWidth: 145 }}>
-                          <QuestionProgressBar solved={s.answersSolved ?? 0} total={s.totalQuestions} />
-                        </td>
-                        {/* Live Timer */}
-                        <td style={{ ...TD, whiteSpace: "nowrap" }}>
-                          <LiveTimer student={s} tick={tick} />
-                        </td>
-                        <td style={{ ...TD, whiteSpace: "nowrap", color: (s.totalHintPenaltySeconds || 0) > 0 ? "#dc2626" : "var(--neo-gray)", fontWeight: 800, fontSize: 12 }}>
-                          {(s.totalHintPenaltySeconds || 0) > 0 ? "+" + s.totalHintPenaltySeconds + "s" : "—"}
-                        </td>
-                        <td style={{ ...TD, fontSize: 11, color: "var(--neo-gray)", whiteSpace: "nowrap" }}>
-                          {s.startedAt ? new Date(s.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+              {filteredProgress.map((student) => {
+                const isCompleted = student.gameStatus === "completed";
+                const isInProgress = student.gameStatus === "in_progress";
+                const bg = isCompleted ? "#e6fcf5" : isInProgress ? "#fdf8e6" : "var(--neo-white)";
+
+                return (
+                  <div
+                    key={student._id}
+                    style={{
+                      background: bg,
+                      border: "var(--neo-border)",
+                      boxShadow: "var(--neo-shadow-sm)",
+                      padding: 16,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                    }}
+                  >
+                    {/* Student Info Bar */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 16, textTransform: "uppercase" }}>
+                          {student.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 700 }}>
+                          @{student.username} · #{student.userNumber}
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          padding: "3px 8px",
+                          fontFamily: "var(--font-heading)",
+                          fontWeight: 800,
+                          fontSize: 10,
+                          textTransform: "uppercase",
+                          border: "2px solid var(--neo-black)",
+                          background: isCompleted ? "var(--neo-green)" : isInProgress ? "var(--neo-yellow)" : "var(--neo-gray-light)",
+                        }}
+                      >
+                        {isCompleted ? "✅ DONE" : isInProgress ? "⏳ IN PROG" : "💤 WAITING"}
+                      </span>
+                    </div>
+
+                    {/* Game Timestamps (Indian Format) */}
+                    <div
+                      style={{
+                        padding: 10,
+                        background: "var(--neo-surface)",
+                        border: "1.5px solid var(--neo-black)",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                      }}
+                    >
+                      <div>
+                        <span style={{ color: "var(--neo-gray)" }}>🚀 Game Start: </span>
+                        <span style={{ color: "var(--neo-black)", fontWeight: 800 }}>{formatIndianDateTime(student.startedAt)}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: "var(--neo-gray)" }}>🏁 Game End: </span>
+                        <span style={{ color: student.completedAt ? "var(--neo-green)" : "#d97706", fontWeight: 800 }}>
+                          {student.completedAt ? formatIndianDateTime(student.completedAt) : isInProgress ? "⏳ In Progress" : "—"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase", marginBottom: 4 }}>
+                        Questions Solved Progress
+                      </div>
+                      <QuestionProgressBar solved={student.verifiedCount || student.solvedCount || 0} total={student.totalQuestions} />
+                    </div>
+
+                    {/* Question Summary List */}
+                    <div style={{ borderTop: "2px solid var(--neo-black)", paddingTop: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", marginBottom: 6 }}>
+                        Detailed Question Timestamps:
+                      </div>
+                      {(!student.questions || !student.questions.length) ? (
+                        <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 600 }}>No question data.</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 180, overflowY: "auto" }}>
+                          {student.questions.map((q) => {
+                            const isVerified = q.status === "location_verified";
+                            const isSolved = q.status === "answer_solved" || isVerified;
+
+                            return (
+                              <div
+                                key={q.questionId}
+                                style={{
+                                  padding: "6px 8px",
+                                  background: isVerified ? "#e6fcf5" : isSolved ? "#fdf8e6" : "var(--neo-white)",
+                                  border: "1px solid #ddd",
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                                  <span style={{ fontWeight: 800 }}>Q{q.sequence}. {q.questionText}</span>
+                                  <span>{isVerified ? "✅ Verified" : isSolved ? "🟡 Solved" : "⚪ Unsolved"}</span>
+                                </div>
+                                <div style={{ fontSize: 9, color: "var(--neo-gray)" }}>
+                                  Solved: {formatIndianDateTime(q.solvedAt)}
+                                  {q.verifiedAt && ` · Verified: ${formatIndianDateTime(q.verifiedAt)}`}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View Full Timeline Button */}
+                    <button
+                      onClick={() => setSelectedStudent(student)}
+                      style={{
+                        padding: "8px",
+                        background: "var(--neo-black)",
+                        color: "#fff",
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 800,
+                        fontSize: 11,
+                        textTransform: "uppercase",
+                        border: "none",
+                        cursor: "pointer",
+                        marginTop: 4,
+                      }}
+                    >
+                      👁 VIEW FULL TIMELINE
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
-
-          {/* Legend */}
-          {!loading && !error && (
-            <div style={{ padding: "7px 12px", borderTop: "2px solid var(--neo-black)", display: "flex", gap: 12, flexWrap: "wrap", fontSize: 10, fontWeight: 700, background: "var(--neo-surface)" }}>
-              {[["#e6fcf5", "Completed"], ["#fdf8e6", "In Progress"], ["#bbf7d0", "Live Flash"]].map(([bg, lbl]) => (
-                <span key={lbl} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ display: "inline-block", width: 11, height: 11, background: bg, border: "2px solid var(--neo-black)" }} />
-                  {lbl}
-                </span>
-              ))}
-              <span style={{ color: "var(--neo-gray)", marginLeft: 4 }}>Updates instantly over WebSocket when any student answers a question or completes a stage!</span>
-            </div>
-          )}
-        </div>
-
-        {/* Live Event Feed Sidebar */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="neo-card" style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ padding: "9px 13px", borderBottom: "var(--neo-border)", background: "var(--neo-black)", color: "#fff" }}>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 12, textTransform: "uppercase" }}>📡 LIVE EVENTS</div>
-              <div style={{ fontSize: 9, fontWeight: 600, opacity: 0.6, marginTop: 1 }}>Real-time game activity stream</div>
-            </div>
-            <div style={{ padding: 9 }}>
-              <LiveEventFeed events={liveEvents} />
-            </div>
-          </div>
-
-          <div className="neo-card neo-card-dark" style={{ padding: 13 }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 10, textTransform: "uppercase", marginBottom: 9, color: "var(--neo-yellow)" }}>⚡ QUICK STATS</div>
-            {[
-              ["Events Logged", liveEvents.length],
-              ["Active Participants", totalStarted],
-              ["Completion Rate", allCount > 0 ? Math.round((completedCount / allCount) * 100) + "%" : "—"],
-              ["Real-time Mode", "WebSocket Push"],
-            ].map(([l, v]) => (
-              <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.1)", color: "#fff" }}>
-                <span style={{ opacity: 0.6 }}>{l}</span>
-                <span style={{ color: "var(--neo-yellow)" }}>{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Final Podium */}
-      {showPodium && (
-        <div className="bento-grid" style={{ marginBottom: 24 }}>
-          <BentoCard title="🏆 FINAL PODIUM — TOP FINISHERS" subtitle="Ranked by questions solved then adjusted time" span="bento-span-12" variant="yellow">
-            <Podium top3={top3} />
-            <div style={{ display: "flex", gap: 13, marginTop: 20, flexWrap: "wrap" }}>
-              {top3.map((s) => (
-                <div key={s._id} style={{ flex: "1 1 170px", padding: 13, background: s.rank === 1 ? "#fff9db" : s.rank === 2 ? "#f0f0f0" : "#fff1e6", border: "2px solid var(--neo-black)", boxShadow: "var(--neo-shadow-sm)" }}>
-                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 16 }}>{rankLabel(s.rank)} {s.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 700, marginBottom: 7 }}>@{s.username} · #{s.userNumber}</div>
-                  <div style={{ marginBottom: 7 }}>
-                    <QuestionProgressBar solved={s.answersSolved ?? 0} total={s.totalQuestions} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, fontWeight: 700 }}>
-                    <span>⏱ Raw Time: {formatDuration(s.rawTimeSeconds)}</span>
-                    {(s.totalHintPenaltySeconds || 0) > 0 && <span style={{ color: "#dc2626" }}>⚠️ +{s.totalHintPenaltySeconds}s penalty</span>}
-                    <span style={{ color: "var(--neo-purple)", fontWeight: 900 }}>🏁 Adjusted: {formatDuration(s.adjustedTimeSeconds)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </BentoCard>
         </div>
       )}
 
-      {/* Individual Progress Cards */}
-      {!loading && leaderboard.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 900, textTransform: "uppercase", marginBottom: 13, display: "flex", alignItems: "center", gap: 10 }}>
-            📊 INDIVIDUAL PROGRESS CARDS
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--neo-gray)" }}>({leaderboard.length} participants)</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(255px,1fr))", gap: 12 }}>
-            {leaderboard.map((s) => {
-              const done = s.gameStatus === "completed";
-              const ip = s.gameStatus === "in_progress";
-              const flashed = flashedIds.has(String(s._id));
-              const bg = flashed ? "#bbf7d0" : done ? "#e6fcf5" : ip ? "#fdf8e6" : "var(--neo-white)";
-              return (
-                <div key={s._id} style={{ background: bg, border: "var(--neo-border)", boxShadow: "var(--neo-shadow-sm)", padding: 13, position: "relative", transition: "background 0.6s ease" }}>
-                  <div style={{ position: "absolute", top: 10, right: 10, fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: s.rank <= 3 ? 19 : 12 }}>{rankLabel(s.rank)}</div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 13, textTransform: "uppercase", paddingRight: 32 }}>{s.name}</div>
-                  <div style={{ fontSize: 9, color: "var(--neo-gray)", fontWeight: 700, marginBottom: 7 }}>@{s.username} · #{s.userNumber}</div>
-                  <div style={{ marginBottom: 7, display: "flex", alignItems: "center", gap: 5 }}>
-                    {ip && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", animation: "pulse 1s infinite" }} />}
-                    <span style={{ display: "inline-block", padding: "1px 6px", background: done ? "var(--neo-green)" : ip ? "var(--neo-yellow)" : "var(--neo-gray-light)", border: "2px solid var(--neo-black)", fontWeight: 800, fontSize: 9, textTransform: "uppercase" }}>
-                      {done ? "✅ DONE" : ip ? "⏳ IN PROGRESS" : "💤 WAITING"}
-                    </span>
-                  </div>
-                  {s.map && <div style={{ fontSize: 9, fontWeight: 700, color: "var(--neo-gray)", marginBottom: 7 }}>🗺️ {s.map.name}</div>}
-                  <div style={{ marginBottom: 9 }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, textTransform: "uppercase", color: "var(--neo-gray)", marginBottom: 3 }}>Questions Solved</div>
-                    <QuestionProgressBar solved={s.answersSolved ?? 0} total={s.totalQuestions} compact />
-                  </div>
-                  <div style={{ borderTop: "2px solid var(--neo-black)", paddingTop: 7 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: "var(--neo-gray)", textTransform: "uppercase" }}>Adjusted Time</span>
-                      <LiveTimer student={s} tick={tick} />
-                    </div>
-                    {(s.totalHintPenaltySeconds || 0) > 0 && <div style={{ fontSize: 9, fontWeight: 700, color: "#dc2626" }}>⚠️ +{s.totalHintPenaltySeconds}s penalty</div>}
-                    <div style={{ fontSize: 9, fontWeight: 600, color: "var(--neo-gray)", marginTop: 2 }}>
-                      Started: {s.startedAt ? new Date(s.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
-                      {s.completedAt && " · Done: " + new Date(s.completedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {/* Interactive Detail Drawer Modal */}
+      {selectedStudent && (
+        <StudentDetailDrawer student={selectedStudent} onClose={() => setSelectedStudent(null)} />
       )}
     </AdminLayout>
   );
