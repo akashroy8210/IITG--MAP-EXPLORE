@@ -26,7 +26,7 @@ async function createStudent({ name, email }) {
   const username = await generateInstagramUsername(name, userNumber);
 
   // 3 & 4 — password
-  const temporaryPassword = generatePassword();
+  const temporaryPassword = "Pass@1234";
   const passwordHash = await Student.hashPassword(temporaryPassword);
 
   // 5 — map slot (atomic)
