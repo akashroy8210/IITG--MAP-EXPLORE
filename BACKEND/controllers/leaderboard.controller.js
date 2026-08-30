@@ -203,6 +203,16 @@ async function getStudentQuestionProgress(req, res) {
       };
     });
 
+    // Sort by number of questions solved (descending), then by gameStatus completion
+    studentsProgress.sort((a, b) => {
+      const aSolved = a.verifiedCount || a.solvedCount || 0;
+      const bSolved = b.verifiedCount || b.solvedCount || 0;
+      if (bSolved !== aSolved) return bSolved - aSolved;
+      const aDone = a.gameStatus === 'completed' ? 0 : 1;
+      const bDone = b.gameStatus === 'completed' ? 0 : 1;
+      return aDone - bDone;
+    });
+
     res.json({
       students: studentsProgress,
       totalCount: studentsProgress.length,

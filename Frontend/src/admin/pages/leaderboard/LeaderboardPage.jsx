@@ -46,13 +46,6 @@ function rankLabel(rank) {
   return "#" + rank;
 }
 
-function getRankBg(rank) {
-  if (rank === 1) return { background: "#fff9db", border: "3px solid #f59e0b" };
-  if (rank === 2) return { background: "#f0f0f0", border: "3px solid #9ca3af" };
-  if (rank === 3) return { background: "#fff1e6", border: "3px solid #f97316" };
-  return { background: "var(--neo-white)", border: "var(--neo-border-sm)" };
-}
-
 // ─── Question Progress Bar Component ──────────────────────────────────────────
 
 function QuestionProgressBar({ solved, total, compact = false }) {
@@ -257,7 +250,7 @@ function StudentDetailDrawer({ student, onClose }) {
       <div
         style={{
           width: "100%",
-          maxWidth: 600,
+          maxWidth: 620,
           background: "var(--neo-white)",
           height: "100%",
           boxShadow: "-4px 0 0 var(--neo-black)",
@@ -266,7 +259,7 @@ function StudentDetailDrawer({ student, onClose }) {
           overflow: "hidden",
         }}
       >
-        {/* Header */}
+        {/* Drawer Header */}
         <div
           style={{
             padding: 20,
@@ -278,7 +271,7 @@ function StudentDetailDrawer({ student, onClose }) {
           }}
         >
           <div>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>STUDENT TIMELINE DETAILS</span>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>STUDENT QUESTION TIMELINE</span>
             <h3 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 900, textTransform: "uppercase" }}>
               {student.name}
             </h3>
@@ -302,9 +295,9 @@ function StudentDetailDrawer({ student, onClose }) {
           </button>
         </div>
 
-        {/* Content */}
+        {/* Drawer Body */}
         <div style={{ padding: 20, overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Game Timestamps Card */}
+          {/* Game Timestamps Summary Card */}
           <div
             style={{
               padding: 16,
@@ -340,8 +333,11 @@ function StudentDetailDrawer({ student, onClose }) {
 
           {/* Question Breakdown Timeline */}
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 900, textTransform: "uppercase", marginBottom: 10 }}>
-              📋 QUESTION-BY-QUESTION SOLVE TIMELINE
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 900, textTransform: "uppercase", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>📋 QUESTION-BY-QUESTION TIMELINE</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: "var(--neo-green)" }}>
+                {student.verifiedCount || student.solvedCount || 0} / {student.totalQuestions || 0} Questions Solved
+              </span>
             </div>
 
             {(!student.questions || !student.questions.length) ? (
@@ -349,7 +345,7 @@ function StudentDetailDrawer({ student, onClose }) {
                 No question progress data recorded yet.
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {student.questions.map((q) => {
                   const isVerified = q.status === "location_verified";
                   const isSolved = q.status === "answer_solved" || isVerified;
@@ -370,8 +366,8 @@ function StudentDetailDrawer({ student, onClose }) {
                         </span>
                         <span
                           style={{
-                            padding: "2px 6px",
-                            fontSize: 9,
+                            padding: "2px 8px",
+                            fontSize: 10,
                             fontFamily: "var(--font-heading)",
                             fontWeight: 800,
                             border: "1.5px solid var(--neo-black)",
@@ -443,7 +439,7 @@ export default function LeaderboardPage() {
     return () => clearInterval(id);
   }, []);
 
-  // Fetch leaderboard data
+  // Fetch leaderboard & detailed progress data
   const fetchLeaderboard = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -455,10 +451,22 @@ export default function LeaderboardPage() {
 
       setLeaderboard(lbRes.leaderboard || []);
       setAllCount(lbRes.allStudentsCount || 0);
-      setStudentsProgress(progRes.students || []);
+
+      // Sort student progress by number of questions solved (descending)
+      const rawProg = progRes.students || [];
+      rawProg.sort((a, b) => {
+        const aSolved = a.verifiedCount ?? a.solvedCount ?? 0;
+        const bSolved = b.verifiedCount ?? b.solvedCount ?? 0;
+        if (bSolved !== aSolved) return bSolved - aSolved;
+        const aDone = a.gameStatus === "completed" ? 0 : 1;
+        const bDone = b.gameStatus === "completed" ? 0 : 1;
+        return aDone - bDone;
+      });
+
+      setStudentsProgress(rawProg);
       setLastRefreshed(new Date());
     } catch {
-      setError("Failed to load leaderboard data.");
+      setError("Failed to load data.");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -495,14 +503,18 @@ export default function LeaderboardPage() {
   const top3 = leaderboard.filter((s) => s.gameStatus === "completed").slice(0, 3);
   const showPodium = viewMode === "final" && top3.length > 0;
 
-  // Filtering for Leaderboard Tab
+  // Filtered Leaderboard
   const filteredLeaderboard = gameFilter === "all" ? leaderboard : leaderboard.filter((s) => s.gameStatus === gameFilter);
 
-  // Filtering for Student Progress Tab
+  // Filtered & Sorted Student Progress Tab
   const filteredProgress = studentsProgress.filter((s) => {
     const matchesFilter = gameFilter === "all" || s.gameStatus === gameFilter;
     const q = searchQuery.toLowerCase().trim();
-    const matchesSearch = !q || (s.name && s.name.toLowerCase().includes(q)) || (s.username && s.username.toLowerCase().includes(q)) || String(s.userNumber).includes(q);
+    const matchesSearch =
+      !q ||
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.username && s.username.toLowerCase().includes(q)) ||
+      String(s.userNumber).includes(q);
     return matchesFilter && matchesSearch;
   });
 
@@ -515,10 +527,12 @@ export default function LeaderboardPage() {
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
       `}</style>
 
-      {/* Header */}
+      {/* Page Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 24, fontWeight: 900, textTransform: "uppercase", margin: 0 }}>🏆 GAME LEADERBOARD & STUDENT PROGRESS</h2>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 24, fontWeight: 900, textTransform: "uppercase", margin: 0 }}>
+            🏆 GAME LEADERBOARD & STUDENT PROGRESS
+          </h2>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--neo-gray)", margin: "4px 0 0", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span>Live student rankings — question timestamps in Indian Format (en-IN)</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", border: "2px solid var(--neo-black)", fontWeight: 800, fontSize: 11, background: socketConnected ? "var(--neo-green)" : "var(--neo-pink)", color: socketConnected ? "var(--neo-black)" : "#fff" }}>
@@ -538,7 +552,7 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      {/* Main Navigation Tabs */}
+      {/* Navigation Tabs */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, borderBottom: "var(--neo-border)", paddingBottom: 10 }}>
         <button
           onClick={() => setActiveTab("leaderboard")}
@@ -603,7 +617,7 @@ export default function LeaderboardPage() {
                     {viewMode === "final" ? "📋 FINAL RANKINGS" : "📡 LIVE RANKINGS"}
                   </span>
                   <div style={{ fontSize: 10, fontWeight: 600, color: "var(--neo-gray)", marginTop: 2 }}>
-                    Click any student to view detailed question solve timeline
+                    Click any student row to open detailed question timeline
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
@@ -747,10 +761,10 @@ export default function LeaderboardPage() {
         </>
       )}
 
-      {/* ─── TAB 2: STUDENT QUESTION PROGRESS ─── */}
+      {/* ─── TAB 2: STUDENT QUESTION PROGRESS (CLEAN SUMMARY & SEARCHABLE VIEW) ─── */}
       {activeTab === "progress" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Filters & Search */}
+          {/* Searchable Header & Filter Bar */}
           <div
             style={{
               padding: 16,
@@ -765,10 +779,10 @@ export default function LeaderboardPage() {
             }}
           >
             <div style={{ display: "flex", gap: 10, alignItems: "center", flex: 1, minWidth: 280 }}>
-              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 12 }}>🔍 SEARCH:</span>
+              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: 12 }}>🔍 SEARCH STUDENT:</span>
               <input
                 type="text"
-                placeholder="Search student name, username, or #..."
+                placeholder="Type name, username, or # to search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -806,21 +820,25 @@ export default function LeaderboardPage() {
             </div>
           </div>
 
-          {/* Student Progress Cards Grid */}
+          {/* Clean Student Cards Grid — Sorted by Questions Solved Descending */}
           {loading ? (
             <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>⏳ Loading student progress data…</div>
           ) : !filteredProgress.length ? (
-            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>No matching student progress found.</div>
+            <div style={{ padding: 40, textAlign: "center", fontWeight: 800, color: "var(--neo-gray)" }}>
+              {searchQuery ? `No student found matching "${searchQuery}".` : "No matching student progress found."}
+            </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
-              {filteredProgress.map((student) => {
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+              {filteredProgress.map((student, index) => {
                 const isCompleted = student.gameStatus === "completed";
                 const isInProgress = student.gameStatus === "in_progress";
                 const bg = isCompleted ? "#e6fcf5" : isInProgress ? "#fdf8e6" : "var(--neo-white)";
+                const solvedNum = student.verifiedCount || student.solvedCount || 0;
 
                 return (
                   <div
                     key={student._id}
+                    onClick={() => setSelectedStudent(student)}
                     style={{
                       background: bg,
                       border: "var(--neo-border)",
@@ -829,18 +847,37 @@ export default function LeaderboardPage() {
                       display: "flex",
                       flexDirection: "column",
                       gap: 12,
+                      cursor: "pointer",
+                      position: "relative",
+                      transition: "transform 0.1s ease, boxShadow 0.1s ease",
                     }}
                   >
-                    {/* Student Info Bar */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div>
-                        <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 16, textTransform: "uppercase" }}>
-                          {student.name}
-                        </div>
-                        <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 700 }}>
-                          @{student.username} · #{student.userNumber}
-                        </div>
+                    {/* Rank Indicator Badge based on Questions Solved */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 12,
+                        right: 12,
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 900,
+                        fontSize: index < 3 ? 18 : 12,
+                      }}
+                    >
+                      {rankLabel(index + 1)}
+                    </div>
+
+                    {/* Student Name & Username */}
+                    <div style={{ paddingRight: 40 }}>
+                      <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: 16, textTransform: "uppercase" }}>
+                        {student.name}
                       </div>
+                      <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 700, marginTop: 2 }}>
+                        @{student.username} · #{student.userNumber}
+                      </div>
+                    </div>
+
+                    {/* Status & Assignment Badges */}
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <span
                         style={{
                           padding: "3px 8px",
@@ -852,11 +889,24 @@ export default function LeaderboardPage() {
                           background: isCompleted ? "var(--neo-green)" : isInProgress ? "var(--neo-yellow)" : "var(--neo-gray-light)",
                         }}
                       >
-                        {isCompleted ? "✅ DONE" : isInProgress ? "⏳ IN PROG" : "💤 WAITING"}
+                        {isCompleted ? "✅ COMPLETED" : isInProgress ? "⏳ IN PROGRESS" : "💤 NOT STARTED"}
                       </span>
+                      {student.map && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--neo-gray)" }}>
+                          🗺️ {student.map.name}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Game Timestamps (Indian Format) */}
+                    {/* Questions Solved Progress Summary Bar */}
+                    <div style={{ background: "var(--neo-white)", padding: 10, border: "1.5px solid var(--neo-black)" }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase", marginBottom: 4 }}>
+                        QUESTIONS SOLVED
+                      </div>
+                      <QuestionProgressBar solved={solvedNum} total={student.totalQuestions} />
+                    </div>
+
+                    {/* Game Start & End Timestamps in Indian Format */}
                     <div
                       style={{
                         padding: 10,
@@ -870,81 +920,38 @@ export default function LeaderboardPage() {
                       }}
                     >
                       <div>
-                        <span style={{ color: "var(--neo-gray)" }}>🚀 Game Start: </span>
+                        <span style={{ color: "var(--neo-gray)" }}>🚀 Start: </span>
                         <span style={{ color: "var(--neo-black)", fontWeight: 800 }}>{formatIndianDateTime(student.startedAt)}</span>
                       </div>
                       <div>
-                        <span style={{ color: "var(--neo-gray)" }}>🏁 Game End: </span>
+                        <span style={{ color: "var(--neo-gray)" }}>🏁 End: </span>
                         <span style={{ color: student.completedAt ? "var(--neo-green)" : "#d97706", fontWeight: 800 }}>
                           {student.completedAt ? formatIndianDateTime(student.completedAt) : isInProgress ? "⏳ In Progress" : "—"}
                         </span>
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neo-gray)", textTransform: "uppercase", marginBottom: 4 }}>
-                        Questions Solved Progress
-                      </div>
-                      <QuestionProgressBar solved={student.verifiedCount || student.solvedCount || 0} total={student.totalQuestions} />
-                    </div>
-
-                    {/* Question Summary List */}
-                    <div style={{ borderTop: "2px solid var(--neo-black)", paddingTop: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", marginBottom: 6 }}>
-                        Detailed Question Timestamps:
-                      </div>
-                      {(!student.questions || !student.questions.length) ? (
-                        <div style={{ fontSize: 11, color: "var(--neo-gray)", fontWeight: 600 }}>No question data.</div>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 180, overflowY: "auto" }}>
-                          {student.questions.map((q) => {
-                            const isVerified = q.status === "location_verified";
-                            const isSolved = q.status === "answer_solved" || isVerified;
-
-                            return (
-                              <div
-                                key={q.questionId}
-                                style={{
-                                  padding: "6px 8px",
-                                  background: isVerified ? "#e6fcf5" : isSolved ? "#fdf8e6" : "var(--neo-white)",
-                                  border: "1px solid #ddd",
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                }}
-                              >
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                                  <span style={{ fontWeight: 800 }}>Q{q.sequence}. {q.questionText}</span>
-                                  <span>{isVerified ? "✅ Verified" : isSolved ? "🟡 Solved" : "⚪ Unsolved"}</span>
-                                </div>
-                                <div style={{ fontSize: 9, color: "var(--neo-gray)" }}>
-                                  Solved: {formatIndianDateTime(q.solvedAt)}
-                                  {q.verifiedAt && ` · Verified: ${formatIndianDateTime(q.verifiedAt)}`}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* View Full Timeline Button */}
+                    {/* Action Button: View Question Details */}
                     <button
-                      onClick={() => setSelectedStudent(student)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStudent(student);
+                      }}
                       style={{
-                        padding: "8px",
-                        background: "var(--neo-black)",
+                        padding: "10px",
+                        background: "var(--neo-purple)",
                         color: "#fff",
                         fontFamily: "var(--font-heading)",
-                        fontWeight: 800,
+                        fontWeight: 900,
                         fontSize: 11,
                         textTransform: "uppercase",
-                        border: "none",
+                        border: "2px solid var(--neo-black)",
+                        boxShadow: "2px 2px 0 var(--neo-black)",
                         cursor: "pointer",
                         marginTop: 4,
                       }}
                     >
-                      👁 VIEW FULL TIMELINE
+                      👁 VIEW QUESTION DETAILS
                     </button>
                   </div>
                 );
