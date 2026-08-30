@@ -167,7 +167,7 @@ async function getStudentQuestionProgress(req, res) {
         return {
           sequence: idx + 1,
           questionId: qId,
-          questionText: q.Question || Question #,
+          questionText: q.Question || `Question #${idx + 1}`,
           isFirstPuzzle: Boolean(q.isFirstPuzzle),
           isFinalPuzzle: Boolean(q.isFinalPuzzle),
           status,
