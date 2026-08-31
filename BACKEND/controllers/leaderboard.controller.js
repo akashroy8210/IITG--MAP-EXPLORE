@@ -110,4 +110,246 @@ async function getLeaderboard(req, res) {
   }
 }
 
-module.exports = { getLeaderboard };
+/**
+ * GET /api/admin/students-progress
+ * Returns detailed student-wise progress for each assigned question,
+ * including game start time, end time, and solvedAt / verifiedAt timestamps.
+ */
+async function getStudentQuestionProgress(req, res) {
+  try {
+    const students = await Student.find({})
+      .populate('mapId', 'name mapNumber')
+      .populate({
+        path: 'setsKey',
+        populate: {
+          path: 'questions',
+          select: 'Question nextLocationHint isFirstPuzzle isFinalPuzzle',
+        },
+      })
+      .lean();
+
+    const progressDocs = await UserQuestionProgress.find({}).lean();
+
+    // Map of userId -> questionId -> progressDoc
+    const progressMap = {};
+    for (const p of progressDocs) {
+      const uId = String(p.userId);
+      const qId = String(p.questionId);
+      if (!progressMap[uId]) progressMap[uId] = {};
+      progressMap[uId][qId] = p;
+    }
+
+    const studentsProgress = students.map((student) => {
+      const uId = String(student._id);
+      const userProgMap = progressMap[uId] || {};
+
+      let questionsList = [];
+      if (student.setsKey && Array.isArray(student.setsKey.questions)) {
+        questionsList = student.setsKey.questions;
+      }
+
+      const questionBreakdown = questionsList.map((q, idx) => {
+        const qId = String(q._id || q);
+        const p = userProgMap[qId];
+
+        const isCompleted = student.gameStatus === 'completed';
+
+        let status = p ? p.status : 'unsolved';
+        let solvedAt = p ? p.solvedAt : null;
+        let verifiedAt = p ? p.verifiedAt : null;
+
+        if (isCompleted) {
+          status = 'location_verified';
+          if (!solvedAt && student.completedAt) solvedAt = student.completedAt;
+          if (!verifiedAt && student.completedAt) verifiedAt = student.completedAt;
+        }
+
+        return {
+          sequence: idx + 1,
+          questionId: qId,
+          questionText: q.Question || `Question #${idx + 1}`,
+          isFirstPuzzle: Boolean(q.isFirstPuzzle),
+          isFinalPuzzle: Boolean(q.isFinalPuzzle),
+          status,
+          solvedAt,
+          verifiedAt,
+          hintsUsed: p ? Boolean(p.hintsUsed) : false,
+          answerAttemptsCount: p && Array.isArray(p.answerAttempts) ? p.answerAttempts.length : 0,
+          codeAttemptsCount: p && Array.isArray(p.codeAttempts) ? p.codeAttempts.length : 0,
+        };
+      });
+
+      const totalQuestions = questionBreakdown.length;
+      const solvedCount = questionBreakdown.filter(
+        (q) => q.status === 'answer_solved' || q.status === 'location_verified'
+      ).length;
+      const verifiedCount = questionBreakdown.filter((q) => q.status === 'location_verified').length;
+
+      return {
+        _id: student._id,
+        userNumber: student.userNumber,
+        name: student.name,
+        username: student.username,
+        email: student.email,
+        gameStatus: student.gameStatus,
+        startedAt: student.startedAt,
+        completedAt: student.completedAt,
+        map: student.mapId ? { id: student.mapId._id, name: student.mapId.name } : null,
+        setsKey: student.setsKey ? student.setsKey.setsKey : null,
+        totalQuestions,
+        solvedCount,
+        verifiedCount,
+        questions: questionBreakdown,
+      };
+    });
+
+    // Sort by number of questions solved (descending), then by gameStatus completion
+    studentsProgress.sort((a, b) => {
+      const aSolved = a.verifiedCount || a.solvedCount || 0;
+      const bSolved = b.verifiedCount || b.solvedCount || 0;
+      if (bSolved !== aSolved) return bSolved - aSolved;
+      const aDone = a.gameStatus === 'completed' ? 0 : 1;
+      const bDone = b.gameStatus === 'completed' ? 0 : 1;
+      return aDone - bDone;
+    });
+
+    res.json({
+      students: studentsProgress,
+      totalCount: studentsProgress.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+/**
+ * GET /api/admin/leaderboard/export-csv
+ * Generates and downloads CSV file containing:
+ * Name, Username, User Number, Game Status, Started At (IST), Last Question Solved At (IST), Questions Solved, Total Questions
+ */
+async function exportLeaderboardCSV(req, res) {
+  try {
+    const students = await Student.find({})
+      .populate('mapId', 'name mapNumber')
+      .populate({
+        path: 'setsKey',
+        populate: {
+          path: 'questions',
+          select: 'Question',
+        },
+      })
+      .lean();
+
+    const progressDocs = await UserQuestionProgress.find({}).lean();
+
+    const progressMap = {};
+    for (const p of progressDocs) {
+      const uId = String(p.userId);
+      const qId = String(p.questionId);
+      if (!progressMap[uId]) progressMap[uId] = {};
+      progressMap[uId][qId] = p;
+    }
+
+    function formatIST(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      });
+    }
+
+    const rows = [
+      ['Name', 'Username', 'User Number', 'Game Status', 'Started At (IST)', 'Last Question Solved At (IST)', 'Questions Solved', 'Total Questions'],
+    ];
+
+    const list = students.map((student) => {
+      const uId = String(student._id);
+      const userProgMap = progressMap[uId] || {};
+
+      let questionsList = [];
+      if (student.setsKey && Array.isArray(student.setsKey.questions)) {
+        questionsList = student.setsKey.questions;
+      }
+
+      let lastSolvedDate = null;
+      let solvedCount = 0;
+
+      questionsList.forEach((q) => {
+        const qId = String(q._id || q);
+        const p = userProgMap[qId];
+        const isCompleted = student.gameStatus === 'completed';
+
+        let solvedAt = p ? p.solvedAt : null;
+        let verifiedAt = p ? p.verifiedAt : null;
+        if (isCompleted) {
+          if (!solvedAt && student.completedAt) solvedAt = student.completedAt;
+          if (!verifiedAt && student.completedAt) verifiedAt = student.completedAt;
+        }
+
+        if (p?.status === 'answer_solved' || p?.status === 'location_verified' || isCompleted) {
+          solvedCount++;
+          const ts = new Date(verifiedAt || solvedAt).getTime();
+          if (!isNaN(ts)) {
+            if (!lastSolvedDate || ts > lastSolvedDate.getTime()) {
+              lastSolvedDate = new Date(ts);
+            }
+          }
+        }
+      });
+
+      if (!lastSolvedDate && student.completedAt) {
+        lastSolvedDate = new Date(student.completedAt);
+      }
+
+      const totalQuestions = questionsList.length;
+      if (student.gameStatus === 'completed' && totalQuestions > 0) {
+        solvedCount = totalQuestions;
+      }
+
+      return {
+        name: student.name || '',
+        username: student.username || '',
+        userNumber: student.userNumber || '',
+        gameStatus: student.gameStatus || '',
+        startedAtFormatted: formatIST(student.startedAt),
+        lastSolvedFormatted: formatIST(lastSolvedDate),
+        questionsSolved: `${solvedCount} / ${totalQuestions}`,
+        solvedCountNum: solvedCount,
+        totalQuestions,
+      };
+    });
+
+    // Sort by questions solved descending
+    list.sort((a, b) => b.solvedCountNum - a.solvedCountNum);
+
+    list.forEach((s) => {
+      rows.push([
+        `"${s.name.replace(/"/g, '""')}"`,
+        `"${s.username.replace(/"/g, '""')}"`,
+        `"#${s.userNumber}"`,
+        `"${s.gameStatus}"`,
+        `"${s.startedAtFormatted}"`,
+        `"${s.lastSolvedFormatted}"`,
+        `"${s.questionsSolved}"`,
+        `"${s.totalQuestions}"`,
+      ]);
+    });
+
+    const csvData = rows.map((r) => r.join(',')).join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=leaderboard_students_${Date.now()}.csv`);
+    res.status(200).send('\ufeff' + csvData);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+module.exports = { getLeaderboard, getStudentQuestionProgress, exportLeaderboardCSV };

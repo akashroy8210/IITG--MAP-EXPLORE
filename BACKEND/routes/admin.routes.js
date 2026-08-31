@@ -2,7 +2,7 @@ const express = require('express');
 const adminAuth = require('../middleware/adminAuth');
 const requireRole = require('../middleware/requireRole');
 const { getDashboard } = require('../controllers/dashboard.controller');
-const { getLeaderboard } = require('../controllers/leaderboard.controller');
+const { getLeaderboard, getStudentQuestionProgress, exportLeaderboardCSV } = require('../controllers/leaderboard.controller');
 const {
   listStudents,
   createSingleStudent,
@@ -46,6 +46,8 @@ router.use(adminAuth);
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 router.get('/dashboard', getDashboard);
 router.get('/leaderboard', getLeaderboard);
+router.get('/leaderboard/export-csv', exportLeaderboardCSV);
+router.get('/students-progress', getStudentQuestionProgress);
 
 // ─── Questions ────────────────────────────────────────────────────────────────
 router.get('/questions', listQuestions);
