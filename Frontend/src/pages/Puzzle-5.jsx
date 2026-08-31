@@ -92,7 +92,7 @@ export default function Puzzle5() {
     if (!sequenceCode.trim() || verifying) return;
      const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
       console.log("student_sets_key:", res1);
-      const prevQuestionId = res1[0].questions[3]._id;
+      const prevQuestionId = res1.data.game.currentQuestion.id;
     setVerifying(true);
     setVerifyError("");
      console.log("prevQuestionId:", prevQuestionId, "PUZZLE_ID:", PUZZLE_ID);

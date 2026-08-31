@@ -200,6 +200,7 @@ async function verifyCode(req, res) {
     return res.status(400).json({ message: 'This question is not currently active for you' });
   }
 console.log("verify1");
+
   const progress = await UserQuestionProgress.findOne({ userId: student._id, questionId });
   console.log(progress);
   if (!progress || progress.status === 'unsolved') {
@@ -410,7 +411,7 @@ async function getPuzzleStatus(req, res) {
 
   res.json({
     questionId,
-    status: progress?.status || 'unsolved',
+    status: progress?.status,
     completed: solved,
     isCompleted: solved,
     verificationCode: solved ? progress.verificationCode : null,
