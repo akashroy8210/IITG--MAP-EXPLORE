@@ -57,7 +57,8 @@ export default function Puzzle5() {
   // Check from backend whether the puzzle has already been completed on load
   useEffect(() => {
     let cancelled = false;
-    setGateCode(JSON.parse(localStorage.getItem("student_sets_key"))?.data?.game?.mainGateCode || "");
+    const student=(JSON.parse(localStorage.getItem("student_user")) || "");
+    setGateCode(student?.mainGateCode || ""); 
     async function checkCompletionStatus() {
       try {
         const res = await axios.get(
