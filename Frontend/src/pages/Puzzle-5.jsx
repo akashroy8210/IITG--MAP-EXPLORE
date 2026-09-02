@@ -57,8 +57,8 @@ export default function Puzzle5() {
   // Check from backend whether the puzzle has already been completed on load
   useEffect(() => {
     let cancelled = false;
-    const student=(JSON.parse(localStorage.getItem("student_user")) || "");
-    setGateCode(student?.mainGateCode || ""); 
+    const student = (JSON.parse(localStorage.getItem("student_user")) || "");
+    setGateCode(student?.mainGateCode || "");
     async function checkCompletionStatus() {
       try {
         const res = await axios.get(
@@ -67,7 +67,7 @@ export default function Puzzle5() {
         );
 
         if (cancelled) return;
-        if(res.data?.status === "location_verified") {
+        if (res.data?.status === "location_verified") {
           setIsVerified(true);
         }
         if (res.data?.completed || res.data?.isCompleted) {
@@ -91,21 +91,21 @@ export default function Puzzle5() {
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!sequenceCode.trim() || verifying) return;
-     const res1 = JSON.parse(localStorage.getItem("student_sets_key"));
-      console.log("student_sets_key:", res1);
-      const prevQuestionId = res1.data.game.currentQuestion.id;
     setVerifying(true);
     setVerifyError("");
-     console.log("prevQuestionId:", prevQuestionId, "PUZZLE_ID:", PUZZLE_ID);
-   if(prevQuestionId === PUZZLE_ID) {
-        setIsVerified(true);
-        setVerifying(false);
-        return;
-      }
+    const res1 = await axios.get(`${API_BASE_URL}/game/state`, { headers: authHeaders() });
+    const prevQuestionId = res1.data.game.currentQuestion.id;
+    const currentIdx = res1.data.game.currentStageIndex;
+    const nextIdx = currentIdx + 1;
+    const nextQuestionId = JSON.parse(localStorage.getItem("student_sets_key"))[0].questions[nextIdx]._id;
+
+    if (prevQuestionId === PUZZLE_ID) {
+      setIsVerified(true);
+      setVerifying(false);
+      return;
+    }
+
     try {
- 
-    
-   
       const res = await axios.post(
         VERIFY_CODE_ENDPOINT,
         {
@@ -136,8 +136,8 @@ export default function Puzzle5() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (status !== "playing" || !answer.trim()) return;
-    
-    const res1 = await axios.get(`${API_BASE_URL}/game/state`,{ headers: authHeaders() });
+
+    const res1 = await axios.get(`${API_BASE_URL}/game/state`, { headers: authHeaders() });
     const questionss = JSON.parse(localStorage.getItem("student_sets_key"))
     const questionId = questionss[0].questions[res1.data.game.currentStageIndex]._id;
     setQuestId(questionId);
@@ -146,9 +146,10 @@ export default function Puzzle5() {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/game/answer`,
-        { answer: answer.trim(),
+        {
+          answer: answer.trim(),
           questionId: questionId,
-         },
+        },
         { headers: authHeaders() }
       );
 
@@ -223,7 +224,7 @@ export default function Puzzle5() {
               CLOSE WINDOW
             </button>
 
-  
+
           </>
         ) : (
           /* =========================================
@@ -240,73 +241,73 @@ export default function Puzzle5() {
               </div>
             </div>
 
-        <div className="question-box">
-          <span className="question-label">QUESTION</span>
-          <div className="math-equation">
-            <span className="bracket">(</span>
-            <div className="fraction">
-              <span className="numerator">Math - 1</span>
-              <span className="denominator">Math + 1</span>
+            <div className="question-box">
+              <span className="question-label">QUESTION</span>
+              <div className="math-equation">
+                <span className="bracket">(</span>
+                <div className="fraction">
+                  <span className="numerator">Math - 1</span>
+                  <span className="denominator">Math + 1</span>
+                </div>
+                <span className="bracket">)</span>
+                <span className="operator">&bull;</span>
+                <span className="bracket">(</span>
+                <div className="fraction">
+                  <span className="numerator">Chemistry + 1</span>
+                  <span className="denominator">Chemistry - 1</span>
+                </div>
+                <span className="bracket">)</span>
+                <span className="operator">&bull;</span>
+                <span className="bracket">(</span>
+                <div className="fraction">
+                  <span className="numerator">Physics</span>
+                  <span className="denominator">Physics + 1</span>
+                </div>
+                <span className="bracket">)</span>
+                <span className="operator">&nbsp;=&nbsp;?</span>
+              </div>
             </div>
-            <span className="bracket">)</span>
-            <span className="operator">&bull;</span>
-            <span className="bracket">(</span>
-            <div className="fraction">
-              <span className="numerator">Chemistry + 1</span>
-              <span className="denominator">Chemistry - 1</span>
-            </div>
-            <span className="bracket">)</span>
-            <span className="operator">&bull;</span>
-            <span className="bracket">(</span>
-            <div className="fraction">
-              <span className="numerator">Physics</span>
-              <span className="denominator">Physics + 1</span>
-            </div>
-            <span className="bracket">)</span>
-            <span className="operator">&nbsp;=&nbsp;?</span>
-          </div>
-        </div>
 
-        <form className="answer-section" onSubmit={handleSubmit}>
-          <p className="answer-label">Enter your answer:</p>
-          <div className="answer-row">
-            <input
-              type="text" className="nes-input is-dark"
-              placeholder="Enter the number..."
-              value={answer}
-              disabled={status !== "playing"}
-              onChange={(e) => setAnswer(e.target.value)}
-            />
-            <button
-              type="submit"
-              className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
-              disabled={status !== "playing"}
-            >
-              {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
+            <form className="answer-section" onSubmit={handleSubmit}>
+              <p className="answer-label">Enter your answer:</p>
+              <div className="answer-row">
+                <input
+                  type="text" className="nes-input is-dark"
+                  placeholder="Enter the number..."
+                  value={answer}
+                  disabled={status !== "playing"}
+                  onChange={(e) => setAnswer(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className={`submit-btn nes-btn is-warning ${status === "wrong" ? "shake" : ""}`}
+                  disabled={status !== "playing"}
+                >
+                  {status === "checking" ? "CHECKING..." : "SUBMIT ANSWER"}
+                </button>
+              </div>
+              {status === "wrong" && (
+                <p className="answer-error">Not quite. Try again!</p>
+              )}
+            </form>
+
+            <div className="puzzle-footer">
+
+              <div className="hint-box">
+                <span>💡</span>
+                <p>
+                  Substitute the values for Math, Chemistry, and Physics into the equation to calculate the final answer.The values are somewhere hidden in the map
+                </p>
+              </div>
+            </div>
+
+            <button type="button" className="back-btn" onClick={() => window.close()}>
+              CLOSE WINDOW
             </button>
-          </div>
-          {status === "wrong" && (
-            <p className="answer-error">Not quite. Try again!</p>
-          )}
-        </form>
 
-        <div className="puzzle-footer">
- 
-          <div className="hint-box">
-            <span>💡</span>
-            <p>
-              Substitute the values for Math, Chemistry, and Physics into the equation to calculate the final answer.The values are somewhere hidden in the map
-            </p>
-          </div>
-        </div>
-
-        <button type="button" className="back-btn" onClick={() => window.close()}>
-          CLOSE WINDOW
-        </button>
-
-        <div className="puzzle-tip">
-          💡 TIP: Not every clue on this campus is written in words.
-        </div>
+            <div className="puzzle-tip">
+              💡 TIP: Not every clue on this campus is written in words.
+            </div>
           </>
         )}
       </div>
